@@ -1,21 +1,22 @@
-const pinnedNotesEl = document.getElementById("pinnedNotes");
-const todayHotspot = document.getElementById("todayHotspot");
+const debugEl = document.getElementById("debug");
+debugEl.textContent = "JS loaded ✅";
+
+const wallNotesEl = document.getElementById("wallNotes");
+const hotspot = document.getElementById("tableStickyHotspot");
 
 const modal = document.getElementById("modal");
-const modalBackdrop = document.getElementById("modalBackdrop");
-const closeModalBtn = document.getElementById("closeModal");
-const modalNoteEl = document.getElementById("modalNote");
-
-const player = document.getElementById("player");
-const playBtn = document.getElementById("playBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const muteBtn = document.getElementById("muteBtn");
-
-let NOTES = [];
-let currentNote = null;
-let isMuted = false;
+const backdrop = document.getElementById("backdrop");
+const closeBtn = document.getElementById("closeBtn");
+const noteDateEl = document.getElementById("noteDate");
+const noteTextEl = document.getElementById("noteText");
+const noteCardEl = document.getElementById("noteCard");
 
 const palette = ["#FFF4A8","#FFD6E7","#D9F7FF","#E8FFD9","#FFE3BA","#EAD9FF"];
+
+let NOTES = [];
+let TODAY_NOTE = null;
+let LOADED = false;
+let OPEN_WHEN_READY = false;
 
 function getParisDateYYYYMMDD() {
   const fmt = new Intl.DateTimeFormat("en-CA", {
@@ -49,75 +50,42 @@ function hashStr(s){
   return (h >>> 0);
 }
 
-/* Positions on the wall (top-right near TV)
-   left/top are in % of the screen */
 const WALL_POSITIONS = [
-  { left: 74, top: 18, rot: -6 },
-  { left: 86, top: 20, rot: 5 },
-  { left: 76, top: 30, rot: 2 },
-  { left: 88, top: 32, rot: -4 },
-  { left: 73, top: 41, rot: 6 },
+  { left: 73, top: 18, rot: -6 },
+  { left: 85, top: 20, rot: 5 },
+  { left: 75, top: 30, rot: 2 },
+  { left: 87, top: 32, rot: -4 },
+  { left: 72, top: 41, rot: 6 },
   { left: 85, top: 44, rot: -2 }
 ];
 
-function openModal(note, autoPlay = false){
-  currentNote = note;
+function openModal(note){
+  noteDateEl.textContent = prettyDate(note.date);
+  noteTextEl.innerHTML = escapeHtml(note.text);
 
-  const date = prettyDate(note.date);
-  const hasMusic = !!note.music;
-
-  modalNoteEl.innerHTML = `
-    <div class="dateLine">
-      <span>${date}</span>
-      <span>${hasMusic ? "🎵" : ""}</span>
-    </div>
-    <div class="noteText">${escapeHtml(note.text)}</div>
-  `;
-
-  modalNoteEl.style.background = palette[hashStr(note.date) % palette.length];
+  noteCardEl.style.background = palette[hashStr(note.date) % palette.length];
 
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
-
-  if (autoPlay && note.music) loadAndPlay(note);
 }
 
 function closeModal(){
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
-  player.pause();
 }
 
-modalBackdrop.addEventListener("click", closeModal);
-closeModalBtn.addEventListener("click", closeModal);
+backdrop.addEventListener("click", closeModal);
+closeBtn.addEventListener("click", closeModal);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-function loadAndPlay(note){
-  if (!note?.music) return;
-  player.pause();
-  player.currentTime = 0;
-  player.src = note.music;
-  player.muted = isMuted;
-  player.play().catch(() => {});
-}
+function renderWallNotes(notes, today){
+  wallNotesEl.innerHTML = "";
 
-playBtn.addEventListener("click", () => loadAndPlay(currentNote));
-pauseBtn.addEventListener("click", () => player.pause());
-
-muteBtn.addEventListener("click", () => {
-  isMuted = !isMuted;
-  player.muted = isMuted;
-  muteBtn.textContent = isMuted ? "🔇" : "🔊";
-});
-
-function renderPinnedOldNotes(today){
-  pinnedNotesEl.innerHTML = "";
-
-  const oldNotes = NOTES
+  const old = notes
     .filter(n => n.date !== today)
-    .sort((a,b) => b.date.localeCompare(a.date)); // newest first
+    .sort((a,b) => b.date.localeCompare(a.date));
 
-  oldNotes.forEach((note, idx) => {
+  old.forEach((note, idx) => {
     const pos = WALL_POSITIONS[idx % WALL_POSITIONS.length];
 
     const el = document.createElement("div");
@@ -128,31 +96,63 @@ function renderPinnedOldNotes(today){
     el.style.background = palette[hashStr(note.date) % palette.length];
 
     el.innerHTML = `
-      <div class="date">
-        <span>${prettyDate(note.date)}</span>
-        <span>${note.music ? "🎵" : ""}</span>
-      </div>
+      <div class="date">${prettyDate(note.date)}</div>
       <div class="text">${escapeHtml(note.text)}</div>
     `;
 
-    el.addEventListener("click", () => openModal(note, true));
-    pinnedNotesEl.appendChild(el);
+    el.addEventListener("click", () => openModal(note));
+    wallNotesEl.appendChild(el);
   });
 }
 
-async function init(){
-  const res = await fetch("notes.json", { cache: "no-store" });
-  NOTES = await res.json();
-  NOTES.sort((a,b) => a.date.localeCompare(b.date));
-
-  const today = getParisDateYYYYMMDD();
-  const todayNote = NOTES.find(n => n.date === today) || NOTES[NOTES.length - 1];
-
-  // click table sticky -> open today's note
-  todayHotspot.addEventListener("click", () => openModal(todayNote, true));
-
-  // show old notes on the wall
-  renderPinnedOldNotes(today);
+function tryOpenToday(){
+  if (!LOADED) {
+    debugEl.textContent = "HOTSPOT CLICK ✅ (loading notes…)";
+    OPEN_WHEN_READY = true;
+    return;
+  }
+  if (!TODAY_NOTE) {
+    debugEl.textContent = "Loaded ✅ but no note found ❌";
+    return;
+  }
+  debugEl.textContent = "Opening today note ✅";
+  openModal(TODAY_NOTE);
 }
 
-init().catch(console.error);
+hotspot.addEventListener("click", tryOpenToday);
+
+async function init(){
+  debugEl.textContent = "Loading notes.json…";
+
+  const res = await fetch("notes.json?v=4", { cache: "no-store" });
+  if (!res.ok) {
+    debugEl.textContent = `notes.json error ❌ (${res.status})`;
+    return;
+  }
+
+  const notes = await res.json();
+  if (!Array.isArray(notes) || notes.length === 0) {
+    debugEl.textContent = "notes.json invalid/empty ❌";
+    return;
+  }
+
+  NOTES = notes;
+  LOADED = true;
+
+  const today = getParisDateYYYYMMDD();
+  TODAY_NOTE = notes.find(n => n.date === today) || notes[notes.length - 1];
+
+  debugEl.textContent = `notes loaded ✅ (${notes.length})`;
+
+  renderWallNotes(notes, today);
+
+  if (OPEN_WHEN_READY) {
+    OPEN_WHEN_READY = false;
+    tryOpenToday();
+  }
+}
+
+init().catch((e) => {
+  console.error(e);
+  debugEl.textContent = "JS error ❌ (open console)";
+});
