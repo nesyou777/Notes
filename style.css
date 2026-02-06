@@ -37,7 +37,7 @@ body{
   z-index: 5;
 
   left: 60%;
-  top: 100%;
+  top: 98%;
   width: 5%;
   height: 5%;
 
@@ -177,4 +177,5 @@ body{
 
 /* ✅ remove debug banner if still in HTML */
 .debug{ display:none !important; }
+
 
