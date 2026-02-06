@@ -1,21 +1,48 @@
 * { box-sizing: border-box; }
+
 body{
   margin:0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   min-height:100vh;
-  background:#f2e7da;
   color:#1b1b1b;
   overflow-x:hidden;
+  background:#f6efe6;
 }
 
+/* Wall background */
 .wall{
   position:fixed; inset:0;
   background:
-    radial-gradient(circle at 20% 10%, rgba(255, 175, 189, 0.35), transparent 45%),
-    radial-gradient(circle at 80% 30%, rgba(255, 195, 160, 0.25), transparent 50%),
-    linear-gradient(180deg, #f6efe6, #f0e2d1);
-  filter: saturate(1.05);
+    radial-gradient(circle at 20% 10%, rgba(255, 160, 180, 0.35), transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(255, 210, 160, 0.28), transparent 55%),
+    radial-gradient(circle at 50% 90%, rgba(255, 170, 210, 0.18), transparent 55%),
+    linear-gradient(180deg, #fbf3ea, #f2e2d1);
+  z-index:-4;
+}
+
+/* String lights */
+.lights{
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:-3;
+  opacity:0.8;
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.9) 0 2px, transparent 3px) 0 0 / 80px 80px,
+    radial-gradient(circle, rgba(255,230,180,0.9) 0 2px, transparent 3px) 40px 40px / 90px 90px;
+  filter: blur(0.2px);
+  mask-image: linear-gradient(180deg, rgba(0,0,0,1), rgba(0,0,0,0.0) 55%);
+}
+
+/* Floating hearts overlay */
+.hearts{
+  position:fixed; inset:0;
+  pointer-events:none;
   z-index:-2;
+  opacity:0.55;
+  background:
+    radial-gradient(circle at 15% 85%, rgba(255,77,109,0.22), transparent 30%),
+    radial-gradient(circle at 80% 78%, rgba(255,77,109,0.18), transparent 32%),
+    radial-gradient(circle at 55% 70%, rgba(255,77,109,0.12), transparent 30%);
 }
 
 .topbar{
@@ -23,13 +50,15 @@ body{
   display:flex; justify-content:space-between; align-items:center;
   padding:14px 16px;
   background: rgba(255,255,255,0.75);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
-.brand{ font-weight:800; }
-.meta{ display:flex; gap:10px; align-items:center; opacity:0.9; }
+.brand .logo{ font-weight:900; letter-spacing:0.2px; }
+.brand .heart{ margin-left:6px; }
+.brand .sub{ font-size:12px; opacity:0.75; margin-top:2px; }
 
+.meta{ display:flex; gap:10px; align-items:center; opacity:0.9; font-size:13px; }
 .iconBtn{
   border:0; cursor:pointer;
   padding:8px 10px;
@@ -38,17 +67,77 @@ body{
 }
 
 .stage{
-  max-width: 980px;
+  max-width: 1050px;
   margin: 0 auto;
   padding: 18px;
 }
+
+.coupleRow{
+  margin-top: 8px;
+  display:grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 14px;
+  align-items:end;
+}
+
+.characterCard{
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 22px;
+  padding: 10px;
+  display:grid;
+  justify-items:center;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+
+.characterImg{
+  width: min(240px, 36vw);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,0.18));
+}
+
+.characterTag{
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgba(255,77,109,0.14);
+  border: 1px solid rgba(255,77,109,0.22);
+}
+
+.titleCard{
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 22px;
+  padding: 16px 14px;
+  text-align:center;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+.bigTitle{ font-weight:900; font-size: 18px; }
+.smallTitle{ font-size: 13px; opacity:0.75; margin-top:4px; }
 
 .mainArea{
   display:grid;
   gap: 10px;
   justify-items:center;
-  margin-top: 8px;
-  margin-bottom: 26px;
+  margin-top: 16px;
+  margin-bottom: 22px;
+}
+
+.pinLine{
+  width: min(620px, 92vw);
+  height: 14px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  opacity:0.7;
+}
+.pinDot{
+  width:10px; height:10px;
+  border-radius: 50%;
+  background: rgba(255,77,109,0.55);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
 }
 
 .hint{
@@ -73,61 +162,95 @@ body{
   font-size: 14px;
 }
 .btn:hover{ filter: brightness(0.98); }
+.btnPrimary{
+  background:#ff4d6d;
+  color:#fff;
+}
+.btnSmall{
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.wallWrap{
+  background: rgba(255,255,255,0.55);
+  border-radius: 26px;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 14px;
+  box-shadow: 0 16px 42px rgba(0,0,0,0.10);
+}
+
+.wallHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  flex-wrap:wrap;
+  margin-bottom: 10px;
+}
 
 .wallTitle{
-  margin: 10px 0 10px;
+  margin: 0;
   font-size: 16px;
   opacity: 0.9;
 }
 
-.wallNotes{
-  position: relative;
-  min-height: 360px;
-  border-radius: 22px;
-  background: rgba(255,255,255,0.55);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
-  overflow:hidden;
-  padding: 14px;
+.footerHint{
+  font-size: 12px;
+  opacity: 0.7;
+  text-align:center;
+  margin-top: 10px;
 }
 
+.wallNotes{
+  position: relative;
+  min-height: 420px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.35)),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0 1px, transparent 1px 18px);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  overflow:hidden;
+}
+
+/* Stickies */
 .sticky{
   position: relative;
   background: #fff4a8;
-  width: 210px;
-  min-height: 170px;
   border-radius: 18px;
   padding: 16px 14px 14px;
-  box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.14);
   transform: rotate(var(--rot, -2deg));
   cursor:pointer;
+  animation: floaty 3.6s ease-in-out infinite;
+}
+@keyframes floaty{
+  0%,100%{ transform: rotate(var(--rot, -2deg)) translateY(0); }
+  50%{ transform: rotate(var(--rot, -2deg)) translateY(-4px); }
 }
 
 .sticky::before{
   content:"";
   position:absolute;
-  top: -10px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%) rotate(-2deg);
-  width: 110px;
-  height: 28px;
+  width: 120px;
+  height: 30px;
   background: rgba(255,255,255,0.55);
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 8px;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.10);
 }
 
-.sticky:hover{ box-shadow: 0 16px 36px rgba(0,0,0,0.16); }
-
 .sticky--big{
-  width: min(520px, 92vw);
+  width: min(620px, 92vw);
   min-height: 260px;
-  padding: 22px 18px 18px;
-  transform: rotate(-1deg);
+  padding: 24px 18px 18px;
 }
 
 .dateLine{
   font-size: 12px;
-  opacity: 0.7;
+  opacity: 0.75;
   margin-bottom: 10px;
   display:flex;
   justify-content:space-between;
@@ -145,21 +268,27 @@ body{
   white-space: pre-wrap;
 }
 
+/* wall small sticky */
 .wallNote{
   position:absolute;
-  width: 170px;
-  min-height: 130px;
+  width: 190px;
+  min-height: 140px;
   padding: 12px;
   border-radius: 16px;
-  background: #fff4a8;
-  box-shadow: 0 12px 22px rgba(0,0,0,0.12);
+  background: var(--color, #fff4a8);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.14);
   cursor:pointer;
   transform: rotate(var(--rot, 2deg));
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
-
+.wallNote:hover{
+  transform: rotate(var(--rot, 2deg)) scale(1.03);
+  box-shadow: 0 18px 34px rgba(0,0,0,0.18);
+}
 .wallNote .text{ font-size: 14px; }
 .wallNote .dateLine{ margin-bottom: 8px; }
 
+/* Modal */
 .modal{
   position: fixed;
   inset: 0;
@@ -173,32 +302,38 @@ body{
 
 .modalBackdrop{
   position:absolute; inset:0;
-  background: rgba(0,0,0,0.40);
+  background: rgba(0,0,0,0.42);
 }
 
 .modalCard{
   position: relative;
   z-index: 51;
-  width: min(720px, 96vw);
-  border-radius: 22px;
+  width: min(820px, 96vw);
+  border-radius: 26px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(10px);
   padding: 14px 14px 18px;
-  box-shadow: 0 22px 60px rgba(0,0,0,0.25);
+  box-shadow: 0 26px 70px rgba(0,0,0,0.28);
   display:grid;
   justify-items:center;
   gap: 10px;
+}
+.modalTitle{
+  font-weight: 900;
+  opacity: 0.85;
 }
 
 .closeBtn{
   position:absolute;
   top: 10px; right: 10px;
   border:0; cursor:pointer;
-  width: 38px; height: 38px;
-  border-radius: 12px;
+  width: 40px; height: 40px;
+  border-radius: 14px;
   background: rgba(0,0,0,0.08);
 }
 
-@media (max-width: 700px){
-  .wallNotes{ min-height: 520px; }
+@media (max-width: 900px){
+  .coupleRow{ grid-template-columns: 1fr; }
+  .characterImg{ width: min(220px, 60vw); }
+  .wallNotes{ min-height: 560px; }
 }
