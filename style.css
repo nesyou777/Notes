@@ -9,7 +9,7 @@ body{
   background:#f6efe6;
 }
 
-/* Wall background */
+/* Background */
 .wall{
   position:fixed; inset:0;
   background:
@@ -17,27 +17,24 @@ body{
     radial-gradient(circle at 85% 25%, rgba(255, 210, 160, 0.28), transparent 55%),
     radial-gradient(circle at 50% 90%, rgba(255, 170, 210, 0.18), transparent 55%),
     linear-gradient(180deg, #fbf3ea, #f2e2d1);
-  z-index:-4;
+  z-index:-6;
 }
 
-/* String lights */
 .lights{
   position:fixed; inset:0;
   pointer-events:none;
-  z-index:-3;
-  opacity:0.8;
+  z-index:-5;
+  opacity:0.75;
   background:
     radial-gradient(circle, rgba(255,255,255,0.9) 0 2px, transparent 3px) 0 0 / 80px 80px,
     radial-gradient(circle, rgba(255,230,180,0.9) 0 2px, transparent 3px) 40px 40px / 90px 90px;
-  filter: blur(0.2px);
   mask-image: linear-gradient(180deg, rgba(0,0,0,1), rgba(0,0,0,0.0) 55%);
 }
 
-/* Floating hearts overlay */
 .hearts{
   position:fixed; inset:0;
   pointer-events:none;
-  z-index:-2;
+  z-index:-4;
   opacity:0.55;
   background:
     radial-gradient(circle at 15% 85%, rgba(255,77,109,0.22), transparent 30%),
@@ -45,6 +42,57 @@ body{
     radial-gradient(circle at 55% 70%, rgba(255,77,109,0.12), transparent 30%);
 }
 
+/* Side characters (fixed) */
+.sideChar{
+  position: fixed;
+  bottom: 0;
+  width: min(260px, 34vw);
+  height: auto;
+  z-index: 3;
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,0.22));
+  pointer-events: none;
+}
+
+.sideChar--left{
+  left: 10px;
+  transform-origin: bottom left;
+  animation: reachLeft 3.2s ease-in-out infinite;
+}
+.sideChar--right{
+  right: 10px;
+  transform-origin: bottom right;
+  animation: reachRight 3.2s ease-in-out infinite;
+}
+
+@keyframes reachLeft{
+  0%,100%{ transform: translateX(0) rotate(-1deg); }
+  50%{ transform: translateX(14px) rotate(1.5deg); }
+}
+@keyframes reachRight{
+  0%,100%{ transform: translateX(0) rotate(1deg); }
+  50%{ transform: translateX(-14px) rotate(-1.5deg); }
+}
+
+/* Cute "connection line" */
+.reachLine{
+  position: fixed;
+  left: 50%;
+  bottom: 120px;
+  width: min(520px, 72vw);
+  height: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(255,77,109,0.55), transparent);
+  border-radius: 99px;
+  z-index: 2;
+  opacity: 0.7;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ opacity:0.45; }
+  50%{ opacity:0.85; }
+}
+
+/* Header */
 .topbar{
   position:sticky; top:0;
   display:flex; justify-content:space-between; align-items:center;
@@ -52,12 +100,10 @@ body{
   background: rgba(255,255,255,0.75);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0,0,0,0.06);
+  z-index: 10;
 }
-
-.brand .logo{ font-weight:900; letter-spacing:0.2px; }
-.brand .heart{ margin-left:6px; }
+.brand .logo{ font-weight:900; }
 .brand .sub{ font-size:12px; opacity:0.75; margin-top:2px; }
-
 .meta{ display:flex; gap:10px; align-items:center; opacity:0.9; font-size:13px; }
 .iconBtn{
   border:0; cursor:pointer;
@@ -66,64 +112,102 @@ body{
   background: rgba(0,0,0,0.06);
 }
 
+/* Layout */
 .stage{
   max-width: 1050px;
   margin: 0 auto;
   padding: 18px;
+  position: relative;
+  z-index: 5;
 }
 
-.coupleRow{
-  margin-top: 8px;
-  display:grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 14px;
-  align-items:end;
+/* Intro scene */
+.introScene{
+  margin-top: 10px;
+  display:flex;
+  justify-content:center;
 }
-
-.characterCard{
-  background: rgba(255,255,255,0.55);
+.introCard{
+  width: min(900px, 96vw);
+  background: rgba(255,255,255,0.66);
   border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 26px;
+  padding: 16px;
+  box-shadow: 0 18px 46px rgba(0,0,0,0.10);
+}
+.introTitle{
+  font-weight: 900;
+  font-size: 18px;
+}
+.introSub{
+  margin-top: 4px;
+  opacity: 0.75;
+  font-size: 13px;
+}
+.sceneWrap{
+  position: relative;
+  margin-top: 12px;
   border-radius: 22px;
-  padding: 10px;
-  display:grid;
-  justify-items:center;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.18);
 }
-
-.characterImg{
-  width: min(240px, 36vw);
+.sceneImg{
+  width: 100%;
   height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 22px rgba(0,0,0,0.18));
+  display:block;
 }
 
-.characterTag{
-  margin-top: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
+/* Hotspot over sticky note on table (adjust if needed) */
+.stickyHotspot{
+  position: absolute;
+  /* These values are tuned for your snote.png preview.
+     If it's slightly off, tell me and I’ll adjust. */
+  left: 52%;
+  top: 72%;
+  width: 14%;
+  height: 12%;
+  transform: translate(-50%, -50%) rotate(-6deg);
+
+  border: 0;
+  cursor: pointer;
+  background: rgba(255, 210, 0, 0.0); /* invisible */
+  border-radius: 12px;
+}
+.stickyHotspot:focus{
+  outline: 3px solid rgba(255,77,109,0.55);
+  outline-offset: 4px;
+}
+.introHint{
+  margin-top: 10px;
   font-size: 12px;
-  background: rgba(255,77,109,0.14);
-  border: 1px solid rgba(255,77,109,0.22);
+  opacity: 0.7;
+}
+
+/* Notes app */
+.hidden{ display:none; }
+
+.notesApp{
+  margin-top: 12px;
+  display:grid;
+  gap: 18px;
+}
+
+.mainArea{
+  display:grid;
+  gap: 10px;
+  justify-items:center;
 }
 
 .titleCard{
   background: rgba(255,255,255,0.65);
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 22px;
-  padding: 16px 14px;
+  padding: 14px 14px;
   text-align:center;
   box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 .bigTitle{ font-weight:900; font-size: 18px; }
 .smallTitle{ font-size: 13px; opacity:0.75; margin-top:4px; }
-
-.mainArea{
-  display:grid;
-  gap: 10px;
-  justify-items:center;
-  margin-top: 16px;
-  margin-bottom: 22px;
-}
 
 .pinLine{
   width: min(620px, 92vw);
@@ -162,14 +246,8 @@ body{
   font-size: 14px;
 }
 .btn:hover{ filter: brightness(0.98); }
-.btnPrimary{
-  background:#ff4d6d;
-  color:#fff;
-}
-.btnSmall{
-  padding: 10px 12px;
-  font-size: 13px;
-}
+.btnPrimary{ background:#ff4d6d; color:#fff; }
+.btnSmall{ padding: 10px 12px; font-size: 13px; }
 
 .wallWrap{
   background: rgba(255,255,255,0.55);
@@ -178,7 +256,6 @@ body{
   padding: 14px;
   box-shadow: 0 16px 42px rgba(0,0,0,0.10);
 }
-
 .wallHeader{
   display:flex;
   align-items:center;
@@ -187,19 +264,8 @@ body{
   flex-wrap:wrap;
   margin-bottom: 10px;
 }
-
-.wallTitle{
-  margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
-}
-
-.footerHint{
-  font-size: 12px;
-  opacity: 0.7;
-  text-align:center;
-  margin-top: 10px;
-}
+.wallTitle{ margin: 0; font-size: 16px; opacity: 0.9; }
+.footerHint{ font-size: 12px; opacity: 0.7; text-align:center; margin-top: 10px; }
 
 .wallNotes{
   position: relative;
@@ -221,11 +287,6 @@ body{
   box-shadow: 0 18px 40px rgba(0,0,0,0.14);
   transform: rotate(var(--rot, -2deg));
   cursor:pointer;
-  animation: floaty 3.6s ease-in-out infinite;
-}
-@keyframes floaty{
-  0%,100%{ transform: rotate(var(--rot, -2deg)) translateY(0); }
-  50%{ transform: rotate(var(--rot, -2deg)) translateY(-4px); }
 }
 
 .sticky::before{
@@ -256,17 +317,8 @@ body{
   justify-content:space-between;
   gap: 10px;
 }
-
-.musicTag{
-  font-size: 12px;
-  opacity: 0.75;
-}
-
-.text{
-  font-size: 18px;
-  line-height: 1.35;
-  white-space: pre-wrap;
-}
+.musicTag{ font-size: 12px; opacity: 0.75; }
+.text{ font-size: 18px; line-height: 1.35; white-space: pre-wrap; }
 
 /* wall small sticky */
 .wallNote{
@@ -298,13 +350,10 @@ body{
   justify-content:center;
   padding: 18px;
 }
-.hidden{ display:none; }
-
 .modalBackdrop{
   position:absolute; inset:0;
   background: rgba(0,0,0,0.42);
 }
-
 .modalCard{
   position: relative;
   z-index: 51;
@@ -318,11 +367,7 @@ body{
   justify-items:center;
   gap: 10px;
 }
-.modalTitle{
-  font-weight: 900;
-  opacity: 0.85;
-}
-
+.modalTitle{ font-weight: 900; opacity: 0.85; }
 .closeBtn{
   position:absolute;
   top: 10px; right: 10px;
@@ -332,8 +377,9 @@ body{
   background: rgba(0,0,0,0.08);
 }
 
+/* Mobile */
 @media (max-width: 900px){
-  .coupleRow{ grid-template-columns: 1fr; }
-  .characterImg{ width: min(220px, 60vw); }
+  .sideChar{ width: min(170px, 34vw); }
+  .reachLine{ bottom: 90px; }
   .wallNotes{ min-height: 560px; }
 }
