@@ -36,14 +36,15 @@ body{
   position:absolute;
   z-index: 5;
 
+  /* your calibrated position */
   left: 60%;
-  top: 98%;
+  top: 86%;
   width: 5%;
   height: 5%;
 
   transform: translate(-50%, -50%) rotate(-6deg);
   background: rgba(255,255,255,0);
-  border: 0;                 /* ✅ no red border */
+  border: 0;
   outline: none;
   border-radius: 10px;
   cursor: pointer;
@@ -88,10 +89,9 @@ body{
   border: 1px solid rgba(0,0,0,0.06);
 }
 
-/* music icon */
 .stickySmall .icon{
   font-size: 20px;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .stickySmall:hover{
@@ -118,64 +118,64 @@ body{
   background: rgba(0,0,0,0.55);
 }
 
+/* ✅ Smaller card */
 .modalCard{
   position:relative;
   z-index:1;
-  width:min(720px, 96vw);
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(10px);
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 28px 80px rgba(0,0,0,0.38);
+  width: min(520px, 92vw);
+  height: min(620px, 85vh);
+  background: transparent;
+  border-radius: 20px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.45);
 }
 
+/* Close */
 .closeBtn{
   position:absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   width: 44px;
   height: 44px;
   border:0;
   border-radius: 14px;
-  background: rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.18);
+  color: white;
+  font-size: 20px;
   cursor:pointer;
+  z-index: 20;
 }
 
+/* ✅ Paper background */
 .noteCard{
-  background:#fff4a8;
-  border-radius: 18px;
-  padding: 22px 18px 18px;
-  min-height: 240px;
+  width: 100%;
+  height: 100%;
+  background: url("backgroundNote.png") center/cover no-repeat;
+  border-radius: 20px;
+  padding: 60px 50px 60px;
   position:relative;
-  box-shadow: 0 20px 52px rgba(0,0,0,0.18);
-}
-
-.noteCard::before{
-  content:"";
-  position:absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 130px;
-  height: 30px;
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 8px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
 }
 
 .noteDate{
-  font-size: 12px;
-  opacity: 0.75;
-  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.7;
+  margin-bottom: 30px;
+  text-transform: uppercase;
 }
 
 .noteText{
-  font-size: 18px;
-  line-height: 1.35;
+  font-size: 26px;
+  line-height: 1.4;
+  text-align: center;
+  font-family: "Comic Sans MS", "Bradley Hand", "Segoe Script", cursive;
+  color: #222;
   white-space: pre-wrap;
+  max-width: 90%;
 }
-
-/* ✅ remove debug banner if still in HTML */
-.debug{ display:none !important; }
-
-
