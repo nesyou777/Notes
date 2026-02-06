@@ -39,7 +39,7 @@ function escapeHtml(str) {
 /* positions near TV/wall */
 // Wall zone (top-right area) in percentage of the scene
 const WALL_ZONE = {
-  left: 68,   // start X (%)
+  left: 50,   // start X (%)
   top: 12,    // start Y (%)
   width: 28,  // zone width (%)
   height: 40  // zone height (%)
@@ -225,6 +225,7 @@ async function init() {
 }
 
 init().catch(console.error);
+
 
 
 
