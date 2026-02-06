@@ -1,255 +1,164 @@
-const wallNotesEl = document.getElementById("wallNotes");
-const hotspot = document.getElementById("tableStickyHotspot");
-
 const modal = document.getElementById("modal");
+const modalCard = document.getElementById("modalCard");
 const backdrop = document.getElementById("backdrop");
 const closeBtn = document.getElementById("closeBtn");
+
 const noteDateEl = document.getElementById("noteDate");
 const noteTextEl = document.getElementById("noteText");
-const modalCard = document.getElementById("modalCard");
-const noteAudio = document.getElementById("noteAudio");
 
-let TODAY_NOTE = null;
-let LOADED = false;
-let typingTimer = null;
+const wallNotesEl = document.getElementById("wallNotes");
+const todayHotspot = document.getElementById("todayHotspot");
 
-function preloadImage(src){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = reject;
-    img.src = src;
-  });
-}
+const audioEl = document.getElementById("noteAudio");
 
-(async () => {
-  try {
-    await preloadImage("backgroundNote.png");
-  } catch (e) {
-    // ignore preload failures (still works, just may pop-in)
-  }
+/* ✅ Preload backgroundNote.png so it’s instant on first open */
+(function preload(){
+  const img = new Image();
+  img.src = "backgroundNote.png";
 })();
 
-function getParisDateYYYYMMDD() {
-  const fmt = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  return fmt.format(new Date());
+/* positions near wall/TV — you can expand later */
+const WALL_POSITIONS = [
+  { left: 73, top: 16, rot: -8 },
+  { left: 86, top: 18, rot: 6 },
+  { left: 72, top: 29, rot: 4 },
+  { left: 86, top: 31, rot: -6 },
+  { left: 72, top: 42, rot: 7 },
+  { left: 86, top: 44, rot: -4 }
+];
+
+const COLORS = ["sticky-yellow","sticky-pink","sticky-blue","sticky-white","sticky-green"];
+
+/* typing speed (slow handwriting) */
+const TYPE_DELAY_MS = 55;
+
+let notes = [];
+let todayNote = null;
+
+function fmtDate(dateStr){
+  // keep your exact string (ex: "Feb 06, 2026") or format it here
+  return dateStr;
 }
 
-function prettyDate(yyyyMmDd) {
-  const [y, m, d] = yyyyMmDd.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
-}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
-/* positions near TV/wall */
-// Wall zone (top-right area) in percentage of the scene
-const WALL_ZONE = {
-  left: 18,   // start X (%)
-  top: 3,    // start Y (%)
-  width: 78,  // zone width (%)
-  height: 55  // zone height (%)
-};
-
-
-const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
-
-/* ✍️ typing animation (SLOWER by default) */
-function typeText(fullText, speed = 80) { // higher = slower
-  if (typingTimer) clearInterval(typingTimer);
-
+async function typeText(text){
   noteTextEl.classList.add("typing");
-  noteTextEl.innerHTML = "";
-  const safe = escapeHtml(fullText);
-
-  let i = 0;
-  typingTimer = setInterval(() => {
-    i++;
-    noteTextEl.innerHTML = safe.slice(0, i);
-    if (i >= safe.length) {
-      clearInterval(typingTimer);
-      typingTimer = null;
-      noteTextEl.classList.remove("typing");
-    }
-  }, speed);
-}
-
-/* 🔊 per-note music */
-function playNoteMusic(note) {
-  if (!noteAudio) return;
-
-  // stop current
-  noteAudio.pause();
-  noteAudio.currentTime = 0;
-
-  if (note && note.music) {
-    noteAudio.src = note.music;
-    noteAudio.volume = 0.9;
-
-    // openModal is called by a click => autoplay usually allowed
-    noteAudio.play().catch(() => {
-      // Some browsers may still block. In that case user can tap again.
-    });
-  } else {
-    noteAudio.removeAttribute("src");
-    noteAudio.load();
+  noteTextEl.textContent = "";
+  for (let i = 0; i < text.length; i++){
+    noteTextEl.textContent += text[i];
+    await sleep(TYPE_DELAY_MS);
   }
-}
-
-function stopMusic() {
-  if (!noteAudio) return;
-  noteAudio.pause();
-  noteAudio.currentTime = 0;
-}
-
-/* zoom transition from clicked sticky */
-function openModal(note, sourceEl = null) {
-  noteDateEl.textContent = prettyDate(note.date);
-
-  // play music for this note (if defined in notes.json)
-  playNoteMusic(note);
-
-  // reset modal to centered size first (final state)
-  modalCard.style.transition = "none";
-  modalCard.style.left = "50%";
-  modalCard.style.top = "50%";
-  modalCard.style.transform = "translate(-50%, -50%) scale(1)";
-  modalCard.style.width = "min(520px, 92vw)";
-  modalCard.style.height = "min(620px, 85vh)";
-
-  modal.classList.remove("hidden");
-  modal.setAttribute("aria-hidden", "false");
-
-  // if we have a source element, animate from it
-  if (sourceEl) {
-    const from = sourceEl.getBoundingClientRect();
-
-    const startLeft = from.left;
-    const startTop = from.top;
-    const startW = from.width;
-    const startH = from.height;
-
-    modalCard.style.left = `${startLeft}px`;
-    modalCard.style.top = `${startTop}px`;
-    modalCard.style.width = `${startW}px`;
-    modalCard.style.height = `${startH}px`;
-    modalCard.style.transform = "translate(0,0) scale(1)";
-
-    // force reflow
-    void modalCard.offsetWidth;
-
-    // animate to center
-    modalCard.style.transition = "all 420ms cubic-bezier(.2,.9,.2,1)";
-    modalCard.style.left = "50%";
-    modalCard.style.top = "50%";
-    modalCard.style.width = "min(520px, 92vw)";
-    modalCard.style.height = "min(620px, 85vh)";
-    modalCard.style.transform = "translate(-50%, -50%) scale(1)";
-  }
-
-  // start slower handwriting typing
-  typeText(note.text, 55);
-}
-
-function closeModal() {
-  if (typingTimer) clearInterval(typingTimer);
-  typingTimer = null;
   noteTextEl.classList.remove("typing");
-
-  stopMusic();
-
-  modal.classList.add("hidden");
-  modal.setAttribute("aria-hidden", "true");
 }
 
-backdrop.addEventListener("click", closeModal);
-closeBtn.addEventListener("click", closeModal);
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+function stopAudio(){
+  audioEl.pause();
+  audioEl.currentTime = 0;
+}
 
-function renderWallNotes(notes) {
-  wallNotesEl.innerHTML = "";
+function openModalFromRect(rect){
+  modal.classList.remove("hidden");
 
-  const today = getParisDateYYYYMMDD();
+  // start from clicked rect
+  const startLeft = rect.left + rect.width/2;
+  const startTop  = rect.top + rect.height/2;
 
-  const old = notes
-    .filter(n => n.date !== today)
-    .sort((a, b) => b.date.localeCompare(a.date));
+  modalCard.style.transition = "none";
+  modalCard.style.left = `${startLeft}px`;
+  modalCard.style.top  = `${startTop}px`;
+  modalCard.style.transform = "translate(-50%, -50%) scale(0.15)";
 
-  // how many columns depending on count (responsive-ish)
-  const count = old.length;
-  const cols = count <= 6 ? 2 : count <= 12 ? 3 : count <= 20 ? 4 : 5;
-
-  const rows = Math.ceil(count / cols);
-
-  // spacing inside the wall zone
-  const cellW = WALL_ZONE.width / cols;
-  const cellH = WALL_ZONE.height / Math.max(rows, 1);
-
-  old.forEach((note, idx) => {
-    const r = Math.floor(idx / cols);
-    const c = idx % cols;
-
-    // center inside each cell + tiny random jitter
-    const jitterX = (Math.random() - 0.5) * (cellW * 0.25);
-    const jitterY = (Math.random() - 0.5) * (cellH * 0.25);
-
-    const left = WALL_ZONE.left + c * cellW + cellW / 2 + jitterX;
-    const top  = WALL_ZONE.top  + r * cellH + cellH / 2 + jitterY;
-
-    const rot = (Math.random() * 14 - 7).toFixed(1); // -7..+7 degrees
-    const color = COLORS[idx % COLORS.length];
-
-    const el = document.createElement("div");
-    el.className = `stickySmall ${color}`;
-    el.style.left = `${left}%`;
-    el.style.top = `${top}%`;
-    el.style.setProperty("--rot", `${rot}deg`);
-    el.innerHTML = `<div class="icon">🗒️</div>`;
-
-    el.addEventListener("click", () => openModal(note, el));
-    wallNotesEl.appendChild(el);
+  // animate to center
+  requestAnimationFrame(() => {
+    modalCard.style.transition = "transform 320ms ease, left 320ms ease, top 320ms ease";
+    modalCard.style.left = "50%";
+    modalCard.style.top  = "50%";
+    modalCard.style.transform = "translate(-50%, -50%) scale(1)";
   });
 }
 
-hotspot.addEventListener("click", () => {
-  if (!LOADED || !TODAY_NOTE) return;
-  openModal(TODAY_NOTE, hotspot);
-});
-
-async function init() {
-  const res = await fetch("notes.json?v=33", { cache: "no-store" });
-  if (!res.ok) return;
-
-  const notes = await res.json();
-  if (!Array.isArray(notes) || notes.length === 0) return;
-
-  const today = getParisDateYYYYMMDD();
-  TODAY_NOTE = notes.find(n => n.date === today) || notes[notes.length - 1];
-  LOADED = true;
-
-  renderWallNotes(notes);
+function closeModal(){
+  stopAudio();
+  modal.classList.add("hidden");
 }
 
-init().catch(console.error);
+/* create sticky icons on wall */
+function renderWallNotes(oldNotes){
+  wallNotesEl.innerHTML = "";
+  oldNotes.forEach((n, i) => {
+    const pos = WALL_POSITIONS[i % WALL_POSITIONS.length];
 
+    const div = document.createElement("div");
+    div.className = `stickySmall ${COLORS[i % COLORS.length]}`;
+    div.style.left = `${pos.left}%`;
+    div.style.top  = `${pos.top}%`;
+    div.style.setProperty("--rot", `${pos.rot}deg`);
+    div.dataset.id = n.id;
 
+    div.innerHTML = `<div class="icon">📝</div>`;
 
+    div.addEventListener("click", () => openNote(div, n));
+    wallNotesEl.appendChild(div);
+  });
+}
 
+/* open note (with typing + music) */
+async function openNote(sourceEl, noteObj){
+  stopAudio();
 
+  const rect = sourceEl.getBoundingClientRect();
+  openModalFromRect(rect);
 
+  noteDateEl.textContent = fmtDate(noteObj.date);
 
+  // typing
+  await typeText(noteObj.text || "");
 
+  // music
+  if (noteObj.music){
+    audioEl.src = noteObj.music;
+    try { await audioEl.play(); } catch(e){}
+  }
+}
 
+/* load notes.json */
+async function loadNotes(){
+  const res = await fetch("notes.json", { cache: "no-store" });
+  const data = await res.json();
+  notes = Array.isArray(data) ? data : (data.notes || []);
+}
 
+/* pick today note = latest by date */
+function pickToday(){
+  if (!notes.length) return null;
 
+  const sorted = [...notes].sort((a,b) => new Date(a.date) - new Date(b.date));
+  return sorted[sorted.length - 1];
+}
+
+function setup(){
+  todayNote = pickToday();
+  const old = notes.filter(n => n.id !== todayNote?.id);
+
+  renderWallNotes(old);
+
+  // click hotspot opens today note
+  todayHotspot.addEventListener("click", () => {
+    if (!todayNote) return;
+    openNote(todayHotspot, todayNote);
+  });
+
+  // modal close
+  backdrop.addEventListener("click", closeModal);
+  closeBtn.addEventListener("click", closeModal);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+}
+
+/* init */
+(async function init(){
+  await loadNotes();
+  setup();
+})();
