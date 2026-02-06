@@ -31,29 +31,25 @@ body{
   z-index: 1;
 }
 
-/* ✅ IMPORTANT: put hotspot ABOVE the image */
+/* ✅ Invisible clickable hotspot */
 .hotspot{
   position:absolute;
   z-index: 5;
 
-  /* adjust if needed */
   left: 60%;
-  top: 100%;
+  top: 86%;
   width: 5%;
   height: 5%;
 
   transform: translate(-50%, -50%) rotate(-6deg);
-  background: rgba(255,255,255,0.0);
-  border: 2px dashed rgba(255,77,109,0.35); /* visible for debug */
-  border-radius: 12px;
+  background: rgba(255,255,255,0);
+  border: 0;                 /* ✅ no red border */
+  outline: none;
+  border-radius: 10px;
   cursor: pointer;
 }
 
-.hotspot:focus{
-  outline: 3px solid rgba(255, 77, 109, 0.6);
-  outline-offset: 4px;
-}
-
+/* wall notes container */
 .wallNotes{
   position:absolute;
   inset:0;
@@ -61,11 +57,11 @@ body{
   z-index: 4;
 }
 
+/* ✅ icon-only sticky notes */
 .stickySmall{
   position:absolute;
-  width: clamp(70px, 9vw, 110px);
-  min-height: clamp(55px, 7vw, 90px);
-  padding: 8px;
+  width: clamp(42px, 6vw, 64px);
+  height: clamp(42px, 6vw, 64px);
   border-radius: 12px;
   background:#fff4a8;
   box-shadow: 0 12px 22px rgba(0,0,0,0.28);
@@ -73,10 +69,39 @@ body{
   cursor:pointer;
   pointer-events:auto;
   user-select:none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  display:grid;
+  place-items:center;
+}
+
+/* little “tape” */
+.stickySmall::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  left:50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 34px;
+  height: 14px;
+  background: rgba(255,255,255,0.45);
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* music icon */
+.stickySmall .icon{
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.stickySmall:hover{
+  transform: rotate(var(--rot, -3deg)) scale(1.10);
+  box-shadow: 0 16px 28px rgba(0,0,0,0.34);
 }
 
 .hidden{ display:none !important; }
 
+/* modal */
 .modal{
   position:fixed;
   inset:0;
@@ -121,6 +146,21 @@ body{
   border-radius: 18px;
   padding: 22px 18px 18px;
   min-height: 240px;
+  position:relative;
+  box-shadow: 0 20px 52px rgba(0,0,0,0.18);
+}
+
+.noteCard::before{
+  content:"";
+  position:absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 130px;
+  height: 30px;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
 }
 
 .noteDate{
@@ -135,15 +175,5 @@ body{
   white-space: pre-wrap;
 }
 
-/* debug banner */
-.debug{
-  position:absolute;
-  z-index: 6;
-  left: 12px;
-  bottom: 12px;
-  background: rgba(0,0,0,0.65);
-  color: #fff;
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-size: 13px;
-}
+/* ✅ remove debug banner if still in HTML */
+.debug{ display:none !important; }
