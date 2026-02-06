@@ -38,7 +38,7 @@ body{
 
   /* your calibrated position */
   left: 60%;
-  top: 99%;
+  top: 100%;
   width: 5%;
   height: 5%;
 
@@ -179,4 +179,5 @@ body{
   white-space: pre-wrap;
   max-width: 90%;
 }
+
 
