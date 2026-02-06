@@ -11,10 +11,10 @@
     <!-- Main scene background -->
     <img src="snote.png" class="roomBg" alt="Room scene" />
 
-    <!-- Hotspot on the table sticky (today note) -->
+    <!-- Hotspot: the sticky note on the table (today note) -->
     <button id="todayHotspot" class="hotspot" aria-label="Open today’s sticky note"></button>
 
-    <!-- Old notes pinned on the wall (in-room) -->
+    <!-- Old notes pinned on the wall (inside the same room) -->
     <div id="pinnedNotes" class="pinnedNotes" aria-label="Pinned sticky notes"></div>
   </main>
 
@@ -22,7 +22,7 @@
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div id="modalBackdrop" class="modalBackdrop"></div>
 
-    <div class="modalCard">
+    <div class="modalCard" role="dialog" aria-modal="true">
       <button id="closeModal" class="closeBtn" aria-label="Close">✕</button>
 
       <div id="modalNote" class="sticky sticky--big"></div>
