@@ -1,3 +1,7 @@
+const introScene = document.getElementById("introScene");
+const notesApp = document.getElementById("notesApp");
+const stickyHotspot = document.getElementById("stickyHotspot");
+
 const wallNotesEl = document.getElementById("wallNotes");
 const mainNoteEl = document.getElementById("mainNote");
 const hintTextEl = document.getElementById("hintText");
@@ -19,8 +23,11 @@ const shuffleBtn = document.getElementById("shuffleBtn");
 let NOTES = [];
 let currentNote = null;
 let isMuted = false;
+let shuffleSalt = 0;
 
-// --- Date in Europe/Paris
+const palette = ["#FFF4A8","#FFD6E7","#D9F7FF","#E8FFD9","#FFE3BA","#EAD9FF"];
+
+// Paris date
 function getParisDateYYYYMMDD() {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -28,16 +35,19 @@ function getParisDateYYYYMMDD() {
     month: "2-digit",
     day: "2-digit"
   });
-  return fmt.format(new Date()); // "YYYY-MM-DD"
+  return fmt.format(new Date());
 }
-
 function prettyDate(yyyyMmDd) {
   const [y, m, d] = yyyyMmDd.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
   return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
-
-// --- stable random
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
 function hashStr(s){
   let h = 2166136261;
   for (let i = 0; i < s.length; i++){
@@ -55,23 +65,6 @@ function prng(seed){
   };
 }
 
-// Lovely sticky colors
-const palette = [
-  "#FFF4A8", // yellow
-  "#FFD6E7", // pink
-  "#D9F7FF", // baby blue
-  "#E8FFD9", // mint
-  "#FFE3BA", // peach
-  "#EAD9FF"  // lavender
-];
-
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
-}
-
 function renderStickyHTML(note){
   const date = prettyDate(note.date);
   const hasMusic = !!note.music;
@@ -87,28 +80,18 @@ function renderStickyHTML(note){
 function setMainNote(note, reasonText){
   currentNote = note;
   mainNoteEl.innerHTML = renderStickyHTML(note);
-
-  // color from date (stable)
   const color = palette[hashStr(note.date) % palette.length];
   mainNoteEl.style.background = color;
   mainNoteEl.style.setProperty("--rot", `${-2 + Math.random() * 4}deg`);
-
   hintTextEl.textContent = reasonText || "Tap Play to start the note music 🎵";
 }
 
-let shuffleSalt = 0;
-
 function renderWallNotes(){
   wallNotesEl.innerHTML = "";
+  const maxW = wallNotesEl.clientWidth - 18;
+  const maxH = wallNotesEl.clientHeight - 18;
 
-  const rectPadding = 18;
-  const maxW = wallNotesEl.clientWidth - rectPadding;
-  const maxH = wallNotesEl.clientHeight - rectPadding;
-
-  const others = NOTES
-    .filter(n => n.date !== currentNote?.date)
-    .slice()
-    .reverse(); // latest closer to top feeling
+  const others = NOTES.filter(n => n.date !== currentNote?.date).slice().reverse();
 
   others.forEach((note) => {
     const seed = hashStr(note.date) + shuffleSalt * 99991;
@@ -123,9 +106,7 @@ function renderWallNotes(){
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
     el.style.setProperty("--rot", `${rot}deg`);
-
-    const color = palette[hashStr(note.date) % palette.length];
-    el.style.setProperty("--color", color);
+    el.style.setProperty("--color", palette[hashStr(note.date) % palette.length]);
 
     el.innerHTML = renderStickyHTML(note);
     el.addEventListener("click", () => openModal(note));
@@ -133,30 +114,25 @@ function renderWallNotes(){
   });
 }
 
-// --- Modal
+// Modal
 function openModal(note){
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
-
   modalNoteEl.innerHTML = renderStickyHTML(note);
-  const color = palette[hashStr(note.date) % palette.length];
-  modalNoteEl.style.background = color;
-
+  modalNoteEl.style.background = palette[hashStr(note.date) % palette.length];
   currentNote = note;
 }
-
 function closeModal(){
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
 }
-
 modalBackdrop.addEventListener("click", closeModal);
 closeModalBtn.addEventListener("click", closeModal);
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// --- Audio
+// Audio
 function loadAndPlay(note){
   if (!note?.music) {
     alert("No music attached to this note 🎧");
@@ -168,7 +144,6 @@ function loadAndPlay(note){
   player.muted = isMuted;
   player.play().catch(() => {});
 }
-
 playBtn.addEventListener("click", () => loadAndPlay(currentNote));
 pauseBtn.addEventListener("click", () => player.pause());
 modalPlay.addEventListener("click", () => loadAndPlay(currentNote));
@@ -180,13 +155,22 @@ muteBtn.addEventListener("click", () => {
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 });
 
-// Shuffle wall (just layout)
 shuffleBtn.addEventListener("click", () => {
   shuffleSalt++;
   renderWallNotes();
 });
 
-// --- Load notes
+// Intro → show app
+function openTodayFromScene(){
+  introScene.classList.add("hidden");
+  notesApp.classList.remove("hidden");
+
+  // Render wall after visible (so it has correct width/height)
+  requestAnimationFrame(() => renderWallNotes());
+}
+stickyHotspot.addEventListener("click", openTodayFromScene);
+
+// Load notes
 async function init(){
   const today = getParisDateYYYYMMDD();
   todayLabelEl.textContent = `Paris date: ${today}`;
@@ -196,7 +180,6 @@ async function init(){
   NOTES.sort((a,b) => a.date.localeCompare(b.date));
 
   const todayNote = NOTES.find(n => n.date === today);
-
   if (todayNote){
     setMainNote(todayNote, "Today’s note 💘 (tap Play for the music)");
   } else {
@@ -204,8 +187,9 @@ async function init(){
     setMainNote(latest, "No new note today 😏 New one soon…");
   }
 
-  requestAnimationFrame(() => renderWallNotes());
-  window.addEventListener("resize", () => renderWallNotes());
+  window.addEventListener("resize", () => {
+    if (!notesApp.classList.contains("hidden")) renderWallNotes();
+  });
 }
 
 init().catch(err => {
