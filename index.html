@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sticky Notes 💘</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wall"></div>
+
+  <header class="topbar">
+    <div class="brand">Sticky Notes 💌</div>
+    <div class="meta">
+      <span id="todayLabel">—</span>
+      <button id="muteBtn" class="iconBtn" title="Mute / Unmute">🔊</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <!-- MAIN NOTE -->
+    <section class="mainArea">
+      <div id="mainNote" class="sticky sticky--big" role="button" tabindex="0" aria-label="Today note"></div>
+      <div class="hint" id="hintText"></div>
+      <div class="controls">
+        <button id="playBtn" class="btn">▶ Play note music</button>
+        <button id="pauseBtn" class="btn">⏸ Pause</button>
+      </div>
+    </section>
+
+    <!-- WALL NOTES -->
+    <section>
+      <h2 class="wallTitle">Previous notes on the wall 👀</h2>
+      <div id="wallNotes" class="wallNotes"></div>
+    </section>
+  </main>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modalBackdrop" id="modalBackdrop"></div>
+    <div class="modalCard">
+      <button id="closeModal" class="closeBtn" aria-label="Close">✕</button>
+      <div id="modalNote" class="sticky sticky--big"></div>
+      <div class="controls">
+        <button id="modalPlay" class="btn">▶ Play</button>
+        <button id="modalPause" class="btn">⏸ Pause</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- One shared audio player -->
+  <audio id="player" preload="auto"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
