@@ -93,7 +93,7 @@ function renderWallNotes(notes){
     el.style.background = palette[hashStr(note.date) % palette.length];
 
     // icon-only (no text)
-    el.innerHTML = `<div class="icon">🎵</div>`;
+    el.innerHTML = `<div class="icon">🗒️</div>`;
 
     el.addEventListener("click", () => openModal(note));
     wallNotesEl.appendChild(el);
@@ -121,3 +121,4 @@ async function init(){
 }
 
 init().catch(console.error);
+
