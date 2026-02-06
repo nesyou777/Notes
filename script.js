@@ -42,7 +42,7 @@ const WALL_ZONE = {
   left: 75,   // start X (%)
   top: 50,    // start Y (%)
   width: 28,  // zone width (%)
-  height: 40  // zone height (%)
+  height: 10  // zone height (%)
 };
 
 
@@ -225,6 +225,7 @@ async function init() {
 }
 
 init().catch(console.error);
+
 
 
 
