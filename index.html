@@ -10,13 +10,12 @@
 <body>
   <div class="wrap">
     <div class="sceneWrap">
-      <!-- Background scene -->
       <img class="scene" src="snote.png" alt="Scene" />
 
-      <!-- Invisible hotspot on the table sticky note -->
+      <!-- invisible hotspot on table sticky -->
       <button id="tableStickyHotspot" class="hotspot" aria-label="Open today note"></button>
 
-      <!-- Wall notes -->
+      <!-- wall notes -->
       <div id="wallNotes" class="wallNotes"></div>
     </div>
   </div>
@@ -25,10 +24,11 @@
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div id="backdrop" class="backdrop"></div>
 
-    <div class="modalCard" role="dialog" aria-modal="true">
+    <!-- This is the animated container (we'll transform from the clicked sticky) -->
+    <div id="modalCard" class="modalCard" role="dialog" aria-modal="true">
       <button id="closeBtn" class="closeBtn" aria-label="Close">✕</button>
 
-      <div id="noteCard" class="noteCard">
+      <div class="noteCard">
         <div id="noteDate" class="noteDate"></div>
         <div id="noteText" class="noteText"></div>
       </div>
