@@ -13,6 +13,23 @@ let TODAY_NOTE = null;
 let LOADED = false;
 let typingTimer = null;
 
+function preloadImage(src){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+(async () => {
+  try {
+    await preloadImage("backgroundNote.png");
+  } catch (e) {
+    // ignore preload failures (still works, just may pop-in)
+  }
+})();
+
 function getParisDateYYYYMMDD() {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -225,6 +242,7 @@ async function init() {
 }
 
 init().catch(console.error);
+
 
 
 
