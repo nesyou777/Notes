@@ -213,21 +213,27 @@ function openNote(note, fromEl) {
   // start typing (slow)
   typeNoteText(note.text || "");
 
-  // audio
+  // audio (must play directly from the user click)
   try {
     audioEl.pause();
     audioEl.currentTime = 0;
+
     if (note.music) {
       audioEl.src = note.music;
-      // play after a tick (user click qualifies)
-      setTimeout(() => {
-        audioEl.play().catch(() => {});
-      }, 80);
+      audioEl.preload = "auto";
+      audioEl.load(); // important on Safari
+
+      const p = audioEl.play();
+      if (p && typeof p.catch === "function") {
+        p.catch((err) => console.warn("Audio blocked / failed:", err));
+      }
     } else {
       audioEl.removeAttribute("src");
+      audioEl.load();
     }
-  } catch (e) {}
-}
+  } catch (e) {
+    console.warn("Audio error:", e);
+  }
 
 function closeNote() {
   stopTyping();
@@ -274,3 +280,4 @@ async function init() {
 }
 
 init();
+
