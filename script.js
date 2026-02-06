@@ -1,334 +1,237 @@
-// ==============================
-// Notes page - script.js (UPDATED with Drag & Save)
-// ==============================
-
-const NOTES_JSON = "notes.json";
-
-/* Positions near TV/wall (used as default if no saved drag position) */
-const WALL_POSITIONS = [
-  { left: 73, top: 16, rot: -8 },
-  { left: 86, top: 18, rot: 6 },
-  { left: 72, top: 29, rot: 4 },
-  { left: 86, top: 31, rot: -6 },
-  { left: 72, top: 42, rot: 7 },
-  { left: 86, top: 44, rot: -4 }
-];
-
-/* Colors cycle */
-const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
-
-const hotspot = document.getElementById("hotspot");
 const wallNotesEl = document.getElementById("wallNotes");
+const hotspot = document.getElementById("tableStickyHotspot");
 
 const modal = document.getElementById("modal");
 const backdrop = document.getElementById("backdrop");
-const modalCard = document.getElementById("modalCard");
 const closeBtn = document.getElementById("closeBtn");
-
 const noteDateEl = document.getElementById("noteDate");
 const noteTextEl = document.getElementById("noteText");
+const modalCard = document.getElementById("modalCard");
+const noteAudio = document.getElementById("noteAudio");
 
-const playBtn = document.getElementById("playBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-
-let notesData = [];
-let todayNote = null;
-
-let audio = null;
+let TODAY_NOTE = null;
+let LOADED = false;
 let typingTimer = null;
 
-// ------------------------------
-// Load notes.json
-// ------------------------------
-async function loadNotes() {
-  const res = await fetch(NOTES_JSON, { cache: "no-store" });
-  if (!res.ok) throw new Error("Cannot load notes.json");
-  return await res.json();
+function getParisDateYYYYMMDD() {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  return fmt.format(new Date());
 }
 
-function getParisDateISO() {
-  // Uses local device time; if you need strict Paris time always, we can force timezone conversion
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+function prettyDate(yyyyMmDd) {
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
 
-function findTodayNote(allNotes) {
-  const today = getParisDateISO();
-  // Notes should have date like "2026-02-06"
-  return allNotes.find(n => n.date === today) || allNotes[allNotes.length - 1] || null;
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
-function stopTyping() {
-  if (typingTimer) clearTimeout(typingTimer);
-  typingTimer = null;
-  noteTextEl.classList.remove("typing");
-}
+/* positions near TV/wall */
+// Wall zone (top-right area) in percentage of the scene
+const WALL_ZONE = {
+  left: 18,   // start X (%)
+  top: 3,    // start Y (%)
+  width: 78,  // zone width (%)
+  height: 55  // zone height (%)
+};
 
-function typeTextSlow(el, fullText, speedMs = 60) {
-  stopTyping();
-  el.textContent = "";
-  el.classList.add("typing");
+
+const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
+
+/* ✍️ typing animation (SLOWER by default) */
+function typeText(fullText, speed = 80) { // higher = slower
+  if (typingTimer) clearInterval(typingTimer);
+
+  noteTextEl.classList.add("typing");
+  noteTextEl.innerHTML = "";
+  const safe = escapeHtml(fullText);
 
   let i = 0;
-  function tick() {
-    el.textContent = fullText.slice(0, i);
+  typingTimer = setInterval(() => {
     i++;
-    if (i <= fullText.length) {
-      typingTimer = setTimeout(tick, speedMs);
-    } else {
-      el.classList.remove("typing");
+    noteTextEl.innerHTML = safe.slice(0, i);
+    if (i >= safe.length) {
+      clearInterval(typingTimer);
+      typingTimer = null;
+      noteTextEl.classList.remove("typing");
     }
+  }, speed);
+}
+
+/* 🔊 per-note music */
+function playNoteMusic(note) {
+  if (!noteAudio) return;
+
+  // stop current
+  noteAudio.pause();
+  noteAudio.currentTime = 0;
+
+  if (note && note.music) {
+    noteAudio.src = note.music;
+    noteAudio.volume = 0.9;
+
+    // openModal is called by a click => autoplay usually allowed
+    noteAudio.play().catch(() => {
+      // Some browsers may still block. In that case user can tap again.
+    });
+  } else {
+    noteAudio.removeAttribute("src");
+    noteAudio.load();
   }
-  tick();
 }
 
-// ------------------------------
-// Audio
-// ------------------------------
-function stopAudio() {
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
+function stopMusic() {
+  if (!noteAudio) return;
+  noteAudio.pause();
+  noteAudio.currentTime = 0;
 }
 
-function loadAudio(src) {
-  stopAudio();
-  if (!src) return;
-  audio = new Audio(src);
-  audio.loop = false;
-}
+/* zoom transition from clicked sticky */
+function openModal(note, sourceEl = null) {
+  noteDateEl.textContent = prettyDate(note.date);
 
-function playAudio() {
-  if (!audio) return;
-  audio.play().catch(() => {
-    // Autoplay can be blocked; user can press Play manually
-  });
-}
+  // play music for this note (if defined in notes.json)
+  playNoteMusic(note);
 
-// ------------------------------
-// Modal open/close with zoom animation
-// ------------------------------
-function openModal(note, fromEl) {
-  todayNote = note;
-
-  // Fill content
-  noteDateEl.textContent = formatDate(note.date);
-  typeTextSlow(noteTextEl, note.text || "", 65); // slow handwriting
-
-  // Audio for this note
-  loadAudio(note.music || "");
-  // don't autoplay here (better UX); user uses Play
-
-  // Prepare zoom animation from clicked sticky
-  const startRect = fromEl.getBoundingClientRect();
-
-  // target size = current modalCard size when centered
-  modal.classList.remove("hidden");
-
-  // get final rect after visible
-  const endRect = modalCard.getBoundingClientRect();
-
-  // Set modalCard to start position/size
+  // reset modal to centered size first (final state)
   modalCard.style.transition = "none";
-  modalCard.style.left = `${startRect.left}px`;
-  modalCard.style.top = `${startRect.top}px`;
-  modalCard.style.width = `${startRect.width}px`;
-  modalCard.style.height = `${startRect.height}px`;
-  modalCard.style.transform = "none";
-  modalCard.style.opacity = "1";
+  modalCard.style.left = "50%";
+  modalCard.style.top = "50%";
+  modalCard.style.transform = "translate(-50%, -50%) scale(1)";
+  modalCard.style.width = "min(520px, 92vw)";
+  modalCard.style.height = "min(620px, 85vh)";
 
-  // Force reflow
-  void modalCard.offsetHeight;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
 
-  // Animate to center
-  modalCard.style.transition = "all 240ms ease";
-  modalCard.style.left = `${endRect.left}px`;
-  modalCard.style.top = `${endRect.top}px`;
-  modalCard.style.width = `${endRect.width}px`;
-  modalCard.style.height = `${endRect.height}px`;
+  // if we have a source element, animate from it
+  if (sourceEl) {
+    const from = sourceEl.getBoundingClientRect();
 
-  // After animation, snap back to centered rules
-  setTimeout(() => {
-    modalCard.style.transition = "";
+    const startLeft = from.left;
+    const startTop = from.top;
+    const startW = from.width;
+    const startH = from.height;
+
+    modalCard.style.left = `${startLeft}px`;
+    modalCard.style.top = `${startTop}px`;
+    modalCard.style.width = `${startW}px`;
+    modalCard.style.height = `${startH}px`;
+    modalCard.style.transform = "translate(0,0) scale(1)";
+
+    // force reflow
+    void modalCard.offsetWidth;
+
+    // animate to center
+    modalCard.style.transition = "all 420ms cubic-bezier(.2,.9,.2,1)";
     modalCard.style.left = "50%";
     modalCard.style.top = "50%";
-    modalCard.style.width = "";
-    modalCard.style.height = "";
-    modalCard.style.transform = "translate(-50%, -50%)";
-  }, 260);
+    modalCard.style.width = "min(520px, 92vw)";
+    modalCard.style.height = "min(620px, 85vh)";
+    modalCard.style.transform = "translate(-50%, -50%) scale(1)";
+  }
+
+  // start slower handwriting typing
+  typeText(note.text, 55);
 }
 
 function closeModal() {
-  stopTyping();
-  stopAudio();
+  if (typingTimer) clearInterval(typingTimer);
+  typingTimer = null;
+  noteTextEl.classList.remove("typing");
+
+  stopMusic();
+
   modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
 }
 
-// ------------------------------
-// Render wall stickies
-// ------------------------------
-function renderWallNotes(allNotes, today) {
+backdrop.addEventListener("click", closeModal);
+closeBtn.addEventListener("click", closeModal);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+function renderWallNotes(notes) {
   wallNotesEl.innerHTML = "";
 
-  const older = allNotes.filter(n => n !== today).slice(-30); // show last 30 old notes max
-  older.forEach((note, idx) => {
-    const pos = WALL_POSITIONS[idx % WALL_POSITIONS.length];
-    const colorClass = COLORS[idx % COLORS.length];
+  const today = getParisDateYYYYMMDD();
+
+  const old = notes
+    .filter(n => n.date !== today)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  // how many columns depending on count (responsive-ish)
+  const count = old.length;
+  const cols = count <= 6 ? 2 : count <= 12 ? 3 : count <= 20 ? 4 : 5;
+
+  const rows = Math.ceil(count / cols);
+
+  // spacing inside the wall zone
+  const cellW = WALL_ZONE.width / cols;
+  const cellH = WALL_ZONE.height / Math.max(rows, 1);
+
+  old.forEach((note, idx) => {
+    const r = Math.floor(idx / cols);
+    const c = idx % cols;
+
+    // center inside each cell + tiny random jitter
+    const jitterX = (Math.random() - 0.5) * (cellW * 0.25);
+    const jitterY = (Math.random() - 0.5) * (cellH * 0.25);
+
+    const left = WALL_ZONE.left + c * cellW + cellW / 2 + jitterX;
+    const top  = WALL_ZONE.top  + r * cellH + cellH / 2 + jitterY;
+
+    const rot = (Math.random() * 14 - 7).toFixed(1); // -7..+7 degrees
+    const color = COLORS[idx % COLORS.length];
 
     const el = document.createElement("div");
-    el.className = `stickySmall ${colorClass}`;
-    el.style.left = `${pos.left}%`;
-    el.style.top = `${pos.top}%`;
-    el.style.setProperty("--rot", `${pos.rot}deg`);
+    el.className = `stickySmall ${color}`;
+    el.style.left = `${left}%`;
+    el.style.top = `${top}%`;
+    el.style.setProperty("--rot", `${rot}deg`);
+    el.innerHTML = `<div class="icon">🗒️</div>`;
 
-    // icon only
-    const icon = document.createElement("div");
-    icon.className = "icon";
-    icon.textContent = "🗒️";
-    el.appendChild(icon);
-
-    // Draggable + saved positions
-    makeDraggable(el, note.id || note.date || `note_${idx}`);
-
-    // Click opens modal (but not if we were dragging)
-    el.addEventListener("click", () => {
-      if (el.dataset.dragging === "1") return;
-      openModal(note, el);
-    });
-
+    el.addEventListener("click", () => openModal(note, el));
     wallNotesEl.appendChild(el);
   });
 }
 
-// ------------------------------
-// Hotspot click => open today's note
-// ------------------------------
-function setupHotspot(today) {
-  hotspot.addEventListener("click", () => {
-    // open today note from the hotspot area (use hotspot element for zoom)
-    openModal(today, hotspot);
-  });
-}
-
-// ------------------------------
-// Helpers
-// ------------------------------
-function formatDate(iso) {
-  // "2026-02-06" -> "Feb 06, 2026"
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" });
-}
-
-// ------------------------------
-// Drag & drop (Option 1) + save in localStorage
-// ------------------------------
-function makeDraggable(el, key) {
-  // Load saved position if exists
-  const saved = loadPos(key);
-  if (saved) {
-    el.style.left = saved.left + "%";
-    el.style.top = saved.top + "%";
-  }
-
-  let dragging = false;
-
-  const onDown = (e) => {
-    dragging = true;
-    el.dataset.dragging = "1";
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-    document.addEventListener("touchmove", onMove, { passive: false });
-    document.addEventListener("touchend", onUp);
-  };
-
-  const onMove = (e) => {
-    if (!dragging) return;
-    e.preventDefault();
-
-    const p = getPoint(e);
-    const rect = wallNotesEl.getBoundingClientRect();
-
-    const xPct = ((p.x - rect.left) / rect.width) * 100;
-    const yPct = ((p.y - rect.top) / rect.height) * 100;
-
-    // clamp inside scene
-    const clampedX = Math.max(0, Math.min(100, xPct));
-    const clampedY = Math.max(0, Math.min(100, yPct));
-
-    el.style.left = clampedX + "%";
-    el.style.top = clampedY + "%";
-  };
-
-  const onUp = () => {
-    if (!dragging) return;
-    dragging = false;
-
-    document.removeEventListener("mousemove", onMove);
-    document.removeEventListener("mouseup", onUp);
-    document.removeEventListener("touchmove", onMove);
-    document.removeEventListener("touchend", onUp);
-
-    // save
-    savePos(key, parseFloat(el.style.left), parseFloat(el.style.top));
-
-    // allow click again shortly after drop
-    setTimeout(() => {
-      delete el.dataset.dragging;
-    }, 80);
-  };
-
-  el.addEventListener("mousedown", onDown);
-  el.addEventListener("touchstart", onDown, { passive: true });
-}
-
-function getPoint(e) {
-  if (e.touches && e.touches[0]) {
-    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }
-  return { x: e.clientX, y: e.clientY };
-}
-
-function savePos(id, left, top) {
-  const all = JSON.parse(localStorage.getItem("notePositions") || "{}");
-  all[id] = { left, top };
-  localStorage.setItem("notePositions", JSON.stringify(all));
-}
-
-function loadPos(id) {
-  const all = JSON.parse(localStorage.getItem("notePositions") || "{}");
-  return all[id] || null;
-}
-
-// ------------------------------
-// Buttons / close
-// ------------------------------
-backdrop.addEventListener("click", closeModal);
-closeBtn.addEventListener("click", closeModal);
-
-playBtn.addEventListener("click", () => playAudio());
-pauseBtn.addEventListener("click", () => {
-  if (audio) audio.pause();
+hotspot.addEventListener("click", () => {
+  if (!LOADED || !TODAY_NOTE) return;
+  openModal(TODAY_NOTE, hotspot);
 });
 
-// ------------------------------
-// Init
-// ------------------------------
-(async function init() {
-  try {
-    const data = await loadNotes();
-    notesData = Array.isArray(data.notes) ? data.notes : (Array.isArray(data) ? data : []);
-    todayNote = findTodayNote(notesData);
+async function init() {
+  const res = await fetch("notes.json?v=33", { cache: "no-store" });
+  if (!res.ok) return;
 
-    if (!todayNote) return;
+  const notes = await res.json();
+  if (!Array.isArray(notes) || notes.length === 0) return;
 
-    renderWallNotes(notesData, todayNote);
-    setupHotspot(todayNote);
-  } catch (e) {
-    console.error(e);
-  }
-})();
+  const today = getParisDateYYYYMMDD();
+  TODAY_NOTE = notes.find(n => n.date === today) || notes[notes.length - 1];
+  LOADED = true;
+
+  renderWallNotes(notes);
+}
+
+init().catch(console.error);
+
+
+
+
+
+
+
+
+
+
