@@ -76,7 +76,7 @@ body{
 
   /* keep your calibrated position */
   left: 60%;
-  top: 70%;
+  top: 75%;
   width: 5%;
   height: 5%;
 
@@ -246,6 +246,7 @@ body{
     aspect-ratio: 1 / 1; /* keeps it visible on iPhone */
   }
 }
+
 
 
 
