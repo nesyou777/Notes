@@ -49,7 +49,7 @@ const WALL_POSITIONS = [
 const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
 
 /* ✍️ typing animation (SLOWER by default) */
-function typeText(fullText, speed = 70) { // higher = slower
+function typeText(fullText, speed = 80) { // higher = slower
   if (typingTimer) clearInterval(typingTimer);
 
   noteTextEl.classList.add("typing");
@@ -205,4 +205,5 @@ async function init() {
 }
 
 init().catch(console.error);
+
 
