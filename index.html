@@ -3,30 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Notes 💛</title>
+  <title>Sticky Notes 💛</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="wrap">
     <div class="sceneWrap">
-      <img src="snote.png" alt="Room scene" class="scene" />
+      <!-- Background scene -->
+      <img class="scene" src="snote.png" alt="Scene" />
 
-      <!-- Clickable area -->
-      <button id="tableStickyHotspot" class="hotspot" aria-label="Open today sticky note"></button>
+      <!-- Invisible hotspot on the table sticky note -->
+      <button id="tableStickyHotspot" class="hotspot" aria-label="Open today note"></button>
 
       <!-- Wall notes -->
       <div id="wallNotes" class="wallNotes"></div>
-
-      <!-- Debug banner -->
-      <div id="debug" class="debug">JS loading…</div>
     </div>
   </div>
 
   <!-- Modal -->
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div id="backdrop" class="backdrop"></div>
+
     <div class="modalCard" role="dialog" aria-modal="true">
       <button id="closeBtn" class="closeBtn" aria-label="Close">✕</button>
+
       <div id="noteCard" class="noteCard">
         <div id="noteDate" class="noteDate"></div>
         <div id="noteText" class="noteText"></div>
@@ -34,7 +35,6 @@
     </div>
   </div>
 
-  <!-- cache-bust so you ALWAYS get latest script -->
-  <script src="script.js?v=3"></script>
+  <script src="script.js"></script>
 </body>
 </html>
