@@ -26,17 +26,20 @@ function getParisDateYYYYMMDD() {
   });
   return fmt.format(new Date());
 }
+
 function prettyDate(yyyyMmDd) {
   const [y, m, d] = yyyyMmDd.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
   return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
+
 function escapeHtml(str){
   return String(str)
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;");
 }
+
 function hashStr(s){
   let h = 2166136261;
   for (let i = 0; i < s.length; i++){
@@ -46,18 +49,15 @@ function hashStr(s){
   return (h >>> 0);
 }
 
-/**
- * Place old notes as sticky notes ON the wall in snote.png.
- * These are percentage positions so they adapt to screen size.
- * 👉 You can tweak positions easily.
- */
+/* Positions on the wall (top-right near TV)
+   left/top are in % of the screen */
 const WALL_POSITIONS = [
-  { left: 68, top: 18, rot: -6 },
-  { left: 80, top: 22, rot: 5 },
-  { left: 72, top: 33, rot: 2 },
-  { left: 84, top: 35, rot: -4 },
-  { left: 66, top: 42, rot: 6 },
-  { left: 78, top: 46, rot: -2 }
+  { left: 74, top: 18, rot: -6 },
+  { left: 86, top: 20, rot: 5 },
+  { left: 76, top: 30, rot: 2 },
+  { left: 88, top: 32, rot: -4 },
+  { left: 73, top: 41, rot: 6 },
+  { left: 85, top: 44, rot: -2 }
 ];
 
 function openModal(note, autoPlay = false){
@@ -79,9 +79,7 @@ function openModal(note, autoPlay = false){
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
 
-  if (autoPlay && note.music) {
-    loadAndPlay(note);
-  }
+  if (autoPlay && note.music) loadAndPlay(note);
 }
 
 function closeModal(){
@@ -89,6 +87,7 @@ function closeModal(){
   modal.setAttribute("aria-hidden", "true");
   player.pause();
 }
+
 modalBackdrop.addEventListener("click", closeModal);
 closeModalBtn.addEventListener("click", closeModal);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
@@ -149,10 +148,10 @@ async function init(){
   const today = getParisDateYYYYMMDD();
   const todayNote = NOTES.find(n => n.date === today) || NOTES[NOTES.length - 1];
 
-  // Hotspot opens today's note (or latest if no note today)
+  // click table sticky -> open today's note
   todayHotspot.addEventListener("click", () => openModal(todayNote, true));
 
-  // Show old notes pinned in the room
+  // show old notes on the wall
   renderPinnedOldNotes(today);
 }
 
