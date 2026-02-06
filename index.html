@@ -2,45 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sticky Notes 💛</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preload" as="image" href="backgroundNote.png">
+
+  <!-- ✅ Preload images so popup background doesn’t pop-in late -->
   <link rel="preload" as="image" href="snote.png">
+  <link rel="preload" as="image" href="backgroundNote.png">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <div class="wrap">
     <div class="sceneWrap">
+
+      <!-- main scene -->
       <img class="scene" src="snote.png" alt="Scene" />
 
-      <!-- invisible hotspot on table sticky -->
-      <button id="tableStickyHotspot" class="hotspot" aria-label="Open today note"></button>
+      <!-- clickable hotspot on the table sticky -->
+      <button class="hotspot" id="todayHotspot" aria-label="Open today note"></button>
 
       <!-- wall notes -->
-      <div id="wallNotes" class="wallNotes"></div>
+      <div class="wallNotes" id="wallNotes"></div>
     </div>
   </div>
 
-  <!-- Audio (per note) -->
-  <audio id="noteAudio" preload="auto"></audio>
+  <!-- ✅ Hidden preload element (extra safety) -->
+  <div class="preload-bg" aria-hidden="true"></div>
 
-  <!-- Modal -->
-  <div id="modal" class="modal hidden" aria-hidden="true">
-    <div id="backdrop" class="backdrop"></div>
+  <!-- modal -->
+  <div class="modal hidden" id="modal">
+    <div class="backdrop" id="backdrop"></div>
 
-    <!-- This is the animated container (we'll transform from the clicked sticky) -->
-    <div id="modalCard" class="modalCard" role="dialog" aria-modal="true">
-      <button id="closeBtn" class="closeBtn" aria-label="Close">✕</button>
+    <div class="modalCard" id="modalCard">
+      <button class="closeBtn" id="closeBtn" aria-label="Close">✕</button>
 
       <div class="noteCard">
-        <div id="noteDate" class="noteDate"></div>
-        <div id="noteText" class="noteText"></div>
+        <div class="noteDate" id="noteDate"></div>
+        <div class="noteText" id="noteText"></div>
       </div>
     </div>
   </div>
 
+  <audio id="noteAudio" preload="auto"></audio>
+
   <script src="script.js"></script>
 </body>
 </html>
-
