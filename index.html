@@ -1,41 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sticky Notes 💛</title>
 
-  <!-- ✅ Preload images so popup background doesn’t pop-in late -->
-  <link rel="preload" as="image" href="snote.png">
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- ✅ Preload the modal paper background so it doesn't "pop in" slowly -->
   <link rel="preload" as="image" href="backgroundNote.png">
-
-  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <div class="wrap">
     <div class="sceneWrap">
+      <!-- Scene image -->
+      <img src="snote.png" class="scene" alt="Scene" />
 
-      <!-- main scene -->
-      <img class="scene" src="snote.png" alt="Scene" />
-
-      <!-- clickable hotspot on the table sticky -->
+      <!-- ✅ Clickable hotspot on the table sticky -->
       <button class="hotspot" id="todayHotspot" aria-label="Open today note"></button>
 
-      <!-- wall notes -->
+      <!-- Old stickies container -->
       <div class="wallNotes" id="wallNotes"></div>
     </div>
   </div>
 
-  <!-- ✅ Hidden preload element (extra safety) -->
-  <div class="preload-bg" aria-hidden="true"></div>
-
-  <!-- modal -->
+  <!-- Modal -->
   <div class="modal hidden" id="modal">
     <div class="backdrop" id="backdrop"></div>
 
     <div class="modalCard" id="modalCard">
-      <button class="closeBtn" id="closeBtn" aria-label="Close">✕</button>
+      <button class="closeBtn" id="closeBtn" aria-label="Close">×</button>
 
       <div class="noteCard">
         <div class="noteDate" id="noteDate"></div>
@@ -43,8 +37,6 @@
       </div>
     </div>
   </div>
-
-  <audio id="noteAudio" preload="auto"></audio>
 
   <script src="script.js"></script>
 </body>
