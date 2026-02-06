@@ -3,35 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sticky Notes 💘</title>
+  <title>Sticky Notes ??</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Background decoration -->
   <div class="wall"></div>
+  <div class="lights"></div>
+  <div class="hearts"></div>
 
   <header class="topbar">
-    <div class="brand">Sticky Notes 💌</div>
+    <div class="brand">
+      <span class="logo">Sticky Notes</span> <span class="heart">??</span>
+      <div class="sub">One note a day… for us ??</div>
+    </div>
+
     <div class="meta">
       <span id="todayLabel">—</span>
-      <button id="muteBtn" class="iconBtn" title="Mute / Unmute">🔊</button>
+      <button id="muteBtn" class="iconBtn" title="Mute / Unmute">??</button>
     </div>
   </header>
 
   <main class="stage">
+    <!-- Couple characters -->
+    <section class="coupleRow">
+      <div class="characterCard">
+        <img class="characterImg" src="yns.png" alt="Yns character" />
+        <div class="characterTag">Yns ??</div>
+      </div>
+
+      <div class="titleCard">
+        <div class="bigTitle">Today’s Sticky ??</div>
+        <div class="smallTitle">Tap a note, play its song ??</div>
+      </div>
+
+      <div class="characterCard">
+        <img class="characterImg" src="ada.png" alt="Ada character" />
+        <div class="characterTag">Ada ??</div>
+      </div>
+    </section>
+
     <!-- MAIN NOTE -->
     <section class="mainArea">
+      <div class="pinLine">
+        <span class="pinDot"></span><span class="pinDot"></span><span class="pinDot"></span>
+      </div>
+
       <div id="mainNote" class="sticky sticky--big" role="button" tabindex="0" aria-label="Today note"></div>
+
       <div class="hint" id="hintText"></div>
+
       <div class="controls">
-        <button id="playBtn" class="btn">▶ Play note music</button>
-        <button id="pauseBtn" class="btn">⏸ Pause</button>
+        <button id="playBtn" class="btn btnPrimary">? Play note music</button>
+        <button id="pauseBtn" class="btn">? Pause</button>
       </div>
     </section>
 
     <!-- WALL NOTES -->
-    <section>
-      <h2 class="wallTitle">Previous notes on the wall 👀</h2>
+    <section class="wallWrap">
+      <div class="wallHeader">
+        <h2 class="wallTitle">Our wall of memories ??</h2>
+        <button id="shuffleBtn" class="btn btnSmall">?? Shuffle wall</button>
+      </div>
+
       <div id="wallNotes" class="wallNotes"></div>
+      <div class="footerHint">Click any small sticky to zoom ??</div>
     </section>
   </main>
 
@@ -39,11 +75,13 @@
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div class="modalBackdrop" id="modalBackdrop"></div>
     <div class="modalCard">
-      <button id="closeModal" class="closeBtn" aria-label="Close">✕</button>
+      <button id="closeModal" class="closeBtn" aria-label="Close">?</button>
+      <div class="modalTitle">Zoom note ??</div>
       <div id="modalNote" class="sticky sticky--big"></div>
+
       <div class="controls">
-        <button id="modalPlay" class="btn">▶ Play</button>
-        <button id="modalPause" class="btn">⏸ Pause</button>
+        <button id="modalPlay" class="btn btnPrimary">? Play</button>
+        <button id="modalPause" class="btn">? Pause</button>
       </div>
     </div>
   </div>
