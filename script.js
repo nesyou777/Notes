@@ -6,9 +6,6 @@ const backdrop = document.getElementById("backdrop");
 const closeBtn = document.getElementById("closeBtn");
 const noteDateEl = document.getElementById("noteDate");
 const noteTextEl = document.getElementById("noteText");
-const noteCardEl = document.getElementById("noteCard");
-
-const palette = ["#FFF4A8","#FFD6E7","#D9F7FF","#E8FFD9","#FFE3BA","#EAD9FF"];
 
 let TODAY_NOTE = null;
 let LOADED = false;
@@ -36,16 +33,7 @@ function escapeHtml(str){
     .replaceAll(">","&gt;");
 }
 
-function hashStr(s){
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++){
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0);
-}
-
-/* positions near TV / wall */
+/* positions near TV/wall */
 const WALL_POSITIONS = [
   { left: 75, top: 18, rot: -8 },
   { left: 86, top: 20, rot: 6 },
@@ -58,8 +46,6 @@ const WALL_POSITIONS = [
 function openModal(note){
   noteDateEl.textContent = prettyDate(note.date);
   noteTextEl.innerHTML = escapeHtml(note.text);
-  noteCardEl.style.background = palette[hashStr(note.date) % palette.length];
-
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
 }
@@ -90,9 +76,8 @@ function renderWallNotes(notes){
     el.style.left = `${pos.left}%`;
     el.style.top = `${pos.top}%`;
     el.style.setProperty("--rot", `${pos.rot}deg`);
-    el.style.background = palette[hashStr(note.date) % palette.length];
 
-    // icon-only (no text)
+    // icon only
     el.innerHTML = `<div class="icon">🗒️</div>`;
 
     el.addEventListener("click", () => openModal(note));
@@ -100,14 +85,13 @@ function renderWallNotes(notes){
   });
 }
 
-/* table sticky opens TODAY note */
 hotspot.addEventListener("click", () => {
   if (!LOADED || !TODAY_NOTE) return;
   openModal(TODAY_NOTE);
 });
 
 async function init(){
-  const res = await fetch("notes.json?v=5", { cache: "no-store" });
+  const res = await fetch("notes.json?v=10", { cache: "no-store" });
   if (!res.ok) return;
 
   const notes = await res.json();
@@ -121,4 +105,3 @@ async function init(){
 }
 
 init().catch(console.error);
-
