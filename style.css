@@ -61,8 +61,8 @@ body{
 /* ✅ sticky icon */
 .stickySmall{
   position:absolute;
-  width: clamp(44px, 6vw, 72px);
-  height: clamp(44px, 6vw, 72px);
+  width: clamp(22px, 3vw, 42px);
+  height: clamp(22px, 3vw, 42px);
   border-radius: 14px;
   box-shadow: 0 12px 22px rgba(0,0,0,0.28);
   transform: rotate(var(--rot, -3deg));
@@ -81,15 +81,15 @@ body{
   top:-8px;
   left:50%;
   transform: translateX(-50%) rotate(-2deg);
-  width: 36px;
-  height: 14px;
+  width: 24px;
+  height: 10px;
   background: rgba(255,255,255,0.45);
   border-radius: 6px;
   border: 1px solid rgba(0,0,0,0.06);
 }
 
 .stickySmall .icon{
-  font-size: 22px;
+  font-size: 16px;
   opacity: 0.95;
 }
 
@@ -206,3 +206,4 @@ body{
   0%, 50% { opacity: 0.6; }
   51%, 100% { opacity: 0; }
 }
+
