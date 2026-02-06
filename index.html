@@ -2,40 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sticky Notes 💛</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notes 💛</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="room">
-    <!-- Main scene background -->
-    <img src="snote.png" class="roomBg" alt="Room scene" />
+  <div class="wrap">
+    <div class="sceneWrap">
+      <img src="snote.png" alt="Room scene" class="scene" />
 
-    <!-- Hotspot: the sticky note on the table (today note) -->
-    <button id="todayHotspot" class="hotspot" aria-label="Open today’s sticky note"></button>
+      <!-- Clickable area -->
+      <button id="tableStickyHotspot" class="hotspot" aria-label="Open today sticky note"></button>
 
-    <!-- Old notes pinned on the wall (inside the same room) -->
-    <div id="pinnedNotes" class="pinnedNotes" aria-label="Pinned sticky notes"></div>
-  </main>
+      <!-- Wall notes -->
+      <div id="wallNotes" class="wallNotes"></div>
 
-  <!-- Modal (Zoom note) -->
+      <!-- Debug banner -->
+      <div id="debug" class="debug">JS loading…</div>
+    </div>
+  </div>
+
+  <!-- Modal -->
   <div id="modal" class="modal hidden" aria-hidden="true">
-    <div id="modalBackdrop" class="modalBackdrop"></div>
-
+    <div id="backdrop" class="backdrop"></div>
     <div class="modalCard" role="dialog" aria-modal="true">
-      <button id="closeModal" class="closeBtn" aria-label="Close">✕</button>
-
-      <div id="modalNote" class="sticky sticky--big"></div>
-
-      <div class="controls">
-        <button id="playBtn" class="btn btnPrimary">▶ Play</button>
-        <button id="pauseBtn" class="btn">⏸ Pause</button>
-        <button id="muteBtn" class="btn btnSmall" title="Mute / Unmute">🔊</button>
+      <button id="closeBtn" class="closeBtn" aria-label="Close">✕</button>
+      <div id="noteCard" class="noteCard">
+        <div id="noteDate" class="noteDate"></div>
+        <div id="noteText" class="noteText"></div>
       </div>
     </div>
   </div>
 
-  <audio id="player" preload="auto"></audio>
-  <script src="script.js"></script>
+  <!-- cache-bust so you ALWAYS get latest script -->
+  <script src="script.js?v=3"></script>
 </body>
 </html>
