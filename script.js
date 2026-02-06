@@ -37,14 +37,14 @@ function escapeHtml(str) {
 }
 
 /* positions near TV/wall */
-const WALL_POSITIONS = [
-  { left: 73, top: 16, rot: -8 },
-  { left: 86, top: 18, rot: 6 },
-  { left: 72, top: 29, rot: 4 },
-  { left: 86, top: 31, rot: -6 },
-  { left: 72, top: 42, rot: 7 },
-  { left: 86, top: 44, rot: -4 }
-];
+// Wall zone (top-right area) in percentage of the scene
+const WALL_ZONE = {
+  left: 68,   // start X (%)
+  top: 12,    // start Y (%)
+  width: 28,  // zone width (%)
+  height: 40  // zone height (%)
+};
+
 
 const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
 
@@ -169,15 +169,35 @@ function renderWallNotes(notes) {
     .filter(n => n.date !== today)
     .sort((a, b) => b.date.localeCompare(a.date));
 
+  // how many columns depending on count (responsive-ish)
+  const count = old.length;
+  const cols = count <= 6 ? 2 : count <= 12 ? 3 : count <= 20 ? 4 : 5;
+
+  const rows = Math.ceil(count / cols);
+
+  // spacing inside the wall zone
+  const cellW = WALL_ZONE.width / cols;
+  const cellH = WALL_ZONE.height / Math.max(rows, 1);
+
   old.forEach((note, idx) => {
-    const pos = WALL_POSITIONS[idx % WALL_POSITIONS.length];
+    const r = Math.floor(idx / cols);
+    const c = idx % cols;
+
+    // center inside each cell + tiny random jitter
+    const jitterX = (Math.random() - 0.5) * (cellW * 0.25);
+    const jitterY = (Math.random() - 0.5) * (cellH * 0.25);
+
+    const left = WALL_ZONE.left + c * cellW + cellW / 2 + jitterX;
+    const top  = WALL_ZONE.top  + r * cellH + cellH / 2 + jitterY;
+
+    const rot = (Math.random() * 14 - 7).toFixed(1); // -7..+7 degrees
     const color = COLORS[idx % COLORS.length];
 
     const el = document.createElement("div");
     el.className = `stickySmall ${color}`;
-    el.style.left = `${pos.left}%`;
-    el.style.top = `${pos.top}%`;
-    el.style.setProperty("--rot", `${pos.rot}deg`);
+    el.style.left = `${left}%`;
+    el.style.top = `${top}%`;
+    el.style.setProperty("--rot", `${rot}deg`);
     el.innerHTML = `<div class="icon">🗒️</div>`;
 
     el.addEventListener("click", () => openModal(note, el));
@@ -205,5 +225,6 @@ async function init() {
 }
 
 init().catch(console.error);
+
 
 
