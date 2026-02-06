@@ -7,6 +7,7 @@ const closeBtn = document.getElementById("closeBtn");
 const noteDateEl = document.getElementById("noteDate");
 const noteTextEl = document.getElementById("noteText");
 const modalCard = document.getElementById("modalCard");
+const noteAudio = document.getElementById("noteAudio");
 
 let TODAY_NOTE = null;
 let LOADED = false;
@@ -28,11 +29,11 @@ function prettyDate(yyyyMmDd) {
   return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
 
-function escapeHtml(str){
+function escapeHtml(str) {
   return String(str)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 /* positions near TV/wall */
@@ -45,10 +46,10 @@ const WALL_POSITIONS = [
   { left: 86, top: 44, rot: -4 }
 ];
 
-const COLORS = ["sticky-yellow","sticky-pink","sticky-blue","sticky-white","sticky-green"];
+const COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
 
-/* typing animation */
-function typeText(fullText, speed = 22){
+/* ✍️ typing animation (SLOWER by default) */
+function typeText(fullText, speed = 55) { // higher = slower
   if (typingTimer) clearInterval(typingTimer);
 
   noteTextEl.classList.add("typing");
@@ -67,9 +68,40 @@ function typeText(fullText, speed = 22){
   }, speed);
 }
 
+/* 🔊 per-note music */
+function playNoteMusic(note) {
+  if (!noteAudio) return;
+
+  // stop current
+  noteAudio.pause();
+  noteAudio.currentTime = 0;
+
+  if (note && note.music) {
+    noteAudio.src = note.music;
+    noteAudio.volume = 0.9;
+
+    // openModal is called by a click => autoplay usually allowed
+    noteAudio.play().catch(() => {
+      // Some browsers may still block. In that case user can tap again.
+    });
+  } else {
+    noteAudio.removeAttribute("src");
+    noteAudio.load();
+  }
+}
+
+function stopMusic() {
+  if (!noteAudio) return;
+  noteAudio.pause();
+  noteAudio.currentTime = 0;
+}
+
 /* zoom transition from clicked sticky */
-function openModal(note, sourceEl = null){
+function openModal(note, sourceEl = null) {
   noteDateEl.textContent = prettyDate(note.date);
+
+  // play music for this note (if defined in notes.json)
+  playNoteMusic(note);
 
   // reset modal to centered size first (final state)
   modalCard.style.transition = "none";
@@ -85,9 +117,7 @@ function openModal(note, sourceEl = null){
   // if we have a source element, animate from it
   if (sourceEl) {
     const from = sourceEl.getBoundingClientRect();
-    const to = modalCard.getBoundingClientRect(); // not perfect yet because just opened, but ok
 
-    // set modalCard starting position = from
     const startLeft = from.left;
     const startTop = from.top;
     const startW = from.width;
@@ -111,14 +141,16 @@ function openModal(note, sourceEl = null){
     modalCard.style.transform = "translate(-50%, -50%) scale(1)";
   }
 
-  // start typing
-  typeText(note.text, 18);
+  // start slower handwriting typing
+  typeText(note.text, 55);
 }
 
-function closeModal(){
+function closeModal() {
   if (typingTimer) clearInterval(typingTimer);
   typingTimer = null;
   noteTextEl.classList.remove("typing");
+
+  stopMusic();
 
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
@@ -128,14 +160,14 @@ backdrop.addEventListener("click", closeModal);
 closeBtn.addEventListener("click", closeModal);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-function renderWallNotes(notes){
+function renderWallNotes(notes) {
   wallNotesEl.innerHTML = "";
 
   const today = getParisDateYYYYMMDD();
 
   const old = notes
     .filter(n => n.date !== today)
-    .sort((a,b) => b.date.localeCompare(a.date));
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   old.forEach((note, idx) => {
     const pos = WALL_POSITIONS[idx % WALL_POSITIONS.length];
@@ -158,8 +190,8 @@ hotspot.addEventListener("click", () => {
   openModal(TODAY_NOTE, hotspot);
 });
 
-async function init(){
-  const res = await fetch("notes.json?v=22", { cache: "no-store" });
+async function init() {
+  const res = await fetch("notes.json?v=33", { cache: "no-store" });
   if (!res.ok) return;
 
   const notes = await res.json();
