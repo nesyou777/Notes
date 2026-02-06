@@ -2,33 +2,71 @@
 html, body { height: 100%; margin: 0; }
 
 body{
-  background:#0f0f12;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* 🌸 Lovely background */
+  background:
+    radial-gradient(1200px 700px at 30% 20%, rgba(255,210,230,0.85), transparent 60%),
+    radial-gradient(900px 600px at 70% 10%, rgba(255,245,200,0.75), transparent 55%),
+    radial-gradient(900px 700px at 60% 80%, rgba(210,235,255,0.70), transparent 60%),
+    linear-gradient(135deg, #fff1f6 0%, #ffece2 45%, #fff8ea 100%);
+  overflow-x: hidden;
 }
 
+/* center */
 .wrap{
-  height:100%;
+  min-height:100%;
   display:grid;
   place-items:center;
-  padding:10px;
+  padding:16px;
 }
 
+/* the “poster” container */
 .sceneWrap{
   position:relative;
   width: min(1100px, 100vw);
   height: min(92vh, 900px);
   display:grid;
   place-items:center;
+
+  /* 🫧 soft glass card */
+  border-radius: 26px;
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.55);
+
+  /* ✨ glow + shadow */
+  box-shadow:
+    0 30px 90px rgba(0,0,0,0.18),
+    0 0 0 10px rgba(255,255,255,0.18);
+  overflow:hidden;
 }
 
+/* glow behind image */
+.sceneWrap::before{
+  content:"";
+  position:absolute;
+  inset:-40px;
+  background:
+    radial-gradient(600px 380px at 25% 30%, rgba(255,200,220,0.55), transparent 60%),
+    radial-gradient(520px 360px at 75% 25%, rgba(255,245,200,0.55), transparent 55%),
+    radial-gradient(520px 420px at 60% 85%, rgba(200,230,255,0.50), transparent 60%);
+  filter: blur(18px);
+  z-index:0;
+}
+
+/* your main scene image */
 .scene{
   width:100%;
   height:100%;
   object-fit: contain;
   display:block;
-  background:#0f0f12;
   position: relative;
   z-index: 1;
+
+  /* ✅ remove black border look */
+  background: transparent;
+  border-radius: 22px;
 }
 
 /* ✅ Invisible clickable hotspot */
@@ -36,7 +74,7 @@ body{
   position:absolute;
   z-index: 5;
 
-  /* calibrated position (adjust if needed) */
+  /* keep your calibrated position */
   left: 60%;
   top: 100%;
   width: 5%;
@@ -46,7 +84,6 @@ body{
   background: rgba(255,255,255,0);
   border: 0;
   outline: none;
-  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -58,13 +95,13 @@ body{
   z-index: 4;
 }
 
-/* ✅ sticky icon */
+/* sticky icon */
 .stickySmall{
   position:absolute;
-  width: clamp(22px, 3vw, 42px);
-  height: clamp(22px, 3vw, 42px);
+  width: clamp(38px, 4.8vw, 56px);
+  height: clamp(38px, 4.8vw, 56px);
   border-radius: 14px;
-  box-shadow: 0 12px 22px rgba(0,0,0,0.28);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.22);
   transform: rotate(var(--rot, -3deg));
   cursor:pointer;
   pointer-events:auto;
@@ -81,24 +118,24 @@ body{
   top:-8px;
   left:50%;
   transform: translateX(-50%) rotate(-2deg);
-  width: 24px;
-  height: 10px;
-  background: rgba(255,255,255,0.45);
+  width: 30px;
+  height: 12px;
+  background: rgba(255,255,255,0.55);
   border-radius: 6px;
   border: 1px solid rgba(0,0,0,0.06);
 }
 
 .stickySmall .icon{
-  font-size: 16px;
+  font-size: 18px;
   opacity: 0.95;
 }
 
 .stickySmall:hover{
-  transform: rotate(var(--rot, -3deg)) scale(1.12);
-  box-shadow: 0 16px 28px rgba(0,0,0,0.34);
+  transform: rotate(var(--rot, -3deg)) scale(1.10);
+  box-shadow: 0 16px 28px rgba(0,0,0,0.26);
 }
 
-/* 🎨 colors */
+/* colors */
 .sticky-yellow{ background:#fff4a8; }
 .sticky-pink{ background:#ffd1e6; }
 .sticky-blue{ background:#cfe8ff; }
@@ -121,10 +158,10 @@ body{
 .backdrop{
   position:absolute;
   inset:0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.45);
 }
 
-/* ✅ modalCard will animate from the clicked sticky note */
+/* modal card */
 .modalCard{
   position:fixed;
   left: 50%;
@@ -138,12 +175,11 @@ body{
 
   background: transparent;
   border-radius: 20px;
-  padding: 0;
   overflow: hidden;
-  box-shadow: 0 28px 80px rgba(0,0,0,0.45);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.40);
 }
 
-/* Close */
+/* close */
 .closeBtn{
   position:absolute;
   top: 12px;
@@ -159,7 +195,7 @@ body{
   z-index: 20;
 }
 
-/* ✅ Paper background */
+/* paper background */
 .noteCard{
   width: 100%;
   height: 100%;
@@ -182,7 +218,6 @@ body{
   text-transform: uppercase;
 }
 
-/* handwriting typing */
 .noteText{
   font-size: 26px;
   line-height: 1.4;
@@ -193,7 +228,6 @@ body{
   max-width: 90%;
 }
 
-/* subtle blinking cursor during typing */
 .noteText.typing::after{
   content: "▍";
   display:inline-block;
@@ -206,4 +240,3 @@ body{
   0%, 50% { opacity: 0.6; }
   51%, 100% { opacity: 0; }
 }
-
