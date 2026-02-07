@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sticky Notes 💛</title>
 
-  <!-- Preload background for the popup note (fixes first-open slow background) -->
   <link rel="preload" as="image" href="backgroundNote.png">
   <link rel="preload" as="image" href="snote.png">
 
@@ -15,8 +14,13 @@
 <body>
   <div class="wrap">
     <div class="sceneWrap">
-      <!-- Room image -->
       <img class="scene" id="sceneImg" src="snote.png" alt="scene" />
+
+      <!-- ✅ Countdown above the door -->
+      <div class="countdown" id="countdown" aria-label="Countdown to Feb 13, 2026">
+        <div class="countdownTitle">Countdown 💛</div>
+        <div class="countdownTime" id="countdownTime">--:--:--:--</div>
+      </div>
 
       <!-- Invisible hotspot on table sticky -->
       <button class="hotspot" id="tableHotspot" aria-label="Open today note"></button>
@@ -40,7 +44,6 @@
     </div>
   </div>
 
-  <!-- Audio (must exist) -->
   <audio id="noteAudio" preload="auto"></audio>
 
   <script src="script.js"></script>
