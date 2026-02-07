@@ -247,7 +247,7 @@ tableHotspot.addEventListener("click", () => {
   // ✅ placeholder when today's note doesn't exist
   openNote({
     date: today,
-    text: "Your love is busy… I’ll write today’s note ASAP 💛",
+    text: "Full day but i keep thinking about u… will get today’s note done ASAP 💛✨",
     music: "" // no music
   }, tableHotspot);
 });
@@ -271,3 +271,4 @@ async function loadNotes() {
 }
 
 loadNotes();
+
