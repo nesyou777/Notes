@@ -1,25 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sticky Notes 💛</title>
 
-  <link rel="stylesheet" href="style.css"/>
-
-  <!-- ✅ Preload the modal paper background so it doesn't "pop in" slowly -->
+  <!-- Preload background for the popup note (fixes first-open slow background) -->
   <link rel="preload" as="image" href="backgroundNote.png">
+  <link rel="preload" as="image" href="snote.png">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="wrap">
     <div class="sceneWrap">
-      <!-- Scene image -->
-      <img src="snote.png" class="scene" alt="Scene" />
+      <!-- Room image -->
+      <img class="scene" id="sceneImg" src="snote.png" alt="scene" />
 
-      <!-- ✅ Clickable hotspot on the table sticky -->
-      <button class="hotspot" id="todayHotspot" aria-label="Open today note"></button>
+      <!-- Invisible hotspot on table sticky -->
+      <button class="hotspot" id="tableHotspot" aria-label="Open today note"></button>
 
-      <!-- Old stickies container -->
+      <!-- Old sticky notes on wall -->
       <div class="wallNotes" id="wallNotes"></div>
     </div>
   </div>
@@ -38,8 +40,9 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Audio (must exist) -->
   <audio id="noteAudio" preload="auto"></audio>
+
+  <script src="script.js"></script>
 </body>
 </html>
-
