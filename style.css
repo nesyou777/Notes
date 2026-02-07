@@ -57,6 +57,45 @@ body{
   z-index:0;
 }
 
+/* ⏳ Countdown digital clock (positioned above the door) */
+.countdown{
+  position:absolute;
+  z-index: 6;
+
+  /* ✅ Adjust these to perfectly sit above the door */
+  left: 39%;
+  top: 23%;
+  transform: translate(-50%, -50%) rotate(-1deg);
+
+  padding: 10px 14px;
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.18);
+
+  text-align:center;
+  user-select:none;
+}
+
+.countdownTitle{
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.countdownTime{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #1a1a1a;
+}
+
+
 /* your main scene image */
 .scene{
   width:100%;
@@ -245,5 +284,6 @@ body{
     aspect-ratio: 1 / 1; /* keeps it visible on iPhone */
   }
 }
+
 
 
