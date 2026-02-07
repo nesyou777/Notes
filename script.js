@@ -9,6 +9,63 @@ const noteDateEl = document.getElementById("noteDate");
 const noteTextEl = document.getElementById("noteText");
 const audioEl = document.getElementById("noteAudio");
 
+// =====================
+// ⏳ Countdown to 13/02/2026 (Paris time)
+// =====================
+const countdownTimeEl = document.getElementById("countdownTime");
+
+// Get "Paris wall-clock time" as a UTC timestamp equivalent (stable for diffs)
+function getParisNowAsUtcEquivalentMs() {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Paris",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false
+  }).formatToParts(new Date());
+
+  const get = (t) => parts.find(p => p.type === t)?.value || "00";
+  const y = Number(get("year"));
+  const m = Number(get("month"));
+  const d = Number(get("day"));
+  const hh = Number(get("hour"));
+  const mm = Number(get("minute"));
+  const ss = Number(get("second"));
+
+  return Date.UTC(y, m - 1, d, hh, mm, ss);
+}
+
+// Target: 2026-02-13 00:00:00 Paris time
+function getTargetParisAsUtcEquivalentMs() {
+  return Date.UTC(2026, 1, 13, 0, 0, 0); // month=1 => February
+}
+
+function pad2(n){ return String(n).padStart(2, "0"); }
+
+function updateCountdown() {
+  if (!countdownTimeEl) return;
+
+  const nowMs = getParisNowAsUtcEquivalentMs();
+  const targetMs = getTargetParisAsUtcEquivalentMs();
+  let diff = targetMs - nowMs;
+
+  if (diff <= 0) {
+    countdownTimeEl.textContent = "00:00:00:00";
+    return;
+  }
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  countdownTimeEl.textContent = `${pad2(days)}:${pad2(hours)}:${pad2(mins)}:${pad2(secs)}`;
+}
+
+// Start + refresh every second
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
 let NOTES = [];
 let currentNote = null;
 let modalOpen = false;         // ✅ prevent “music restart after close”
@@ -274,5 +331,6 @@ async function loadNotes() {
 }
 
 loadNotes();
+
 
 
