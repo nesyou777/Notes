@@ -190,27 +190,30 @@ async function openNote(note, fromEl = null) {
     modalCard.style.transform = "translate(-50%, -50%) scale(1)";
   }
 
-  // set date + type text
-  noteDateEl.textContent = note.date ? formatDatePretty(note.date) : "";
-  await typeTextSlow(noteTextEl, note.text || "", 55);
-
-  // ✅ MUSIC: play only if note has music AND modal still open
-  if (modalOpen && note.music) {
+  // ✅ MUSIC: start immediately (before typing)
+  if (note.music) {
     try {
       audioEl.autoplay = false;
       audioEl.loop = false;
       audioEl.src = note.music;
       audioEl.load();
 
-      // must be in user gesture context; if blocked, user can tap popup once
-      audioEl.play().catch(() => {
-        pendingTapToPlay = null;
-        attachTapToPlay();
-      });
+      const p = audioEl.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          // If blocked, allow a tap on the popup to start
+          pendingTapToPlay = null;
+          attachTapToPlay();
+        });
+      }
     } catch (e) {
       console.warn("Audio error:", e);
     }
   }
+
+  // set date + start typing (music already playing)
+  noteDateEl.textContent = note.date ? formatDatePretty(note.date) : "";
+  await typeTextSlow(noteTextEl, note.text || "", 55);
 }
 
 function closeModal() {
@@ -271,4 +274,5 @@ async function loadNotes() {
 }
 
 loadNotes();
+
 
