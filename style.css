@@ -64,7 +64,7 @@ body{
 
   /* ✅ Adjust these to perfectly sit above the door */
   left: 15%;
-  top: 10%;
+  top: 7%;
   transform: translate(-50%, -50%) rotate(-1deg);
 
   padding: 10px 14px;
@@ -284,6 +284,7 @@ body{
     aspect-ratio: 1 / 1; /* keeps it visible on iPhone */
   }
 }
+
 
 
 
