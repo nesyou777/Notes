@@ -11,14 +11,13 @@ const audioEl = document.getElementById("noteAudio");
 
 let NOTES = [];
 let currentNote = null;
+let modalOpen = false;         // ✅ prevent “music restart after close”
+let pendingTapToPlay = null;   // ✅ to cancel tap handler
 
-/** ✅ Colors for wall sticky icons */
+/** 🎨 Colors */
 const COLOR_CLASSES = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-white", "sticky-green"];
 
-/**
- * ✅ Wall placement zone (percent of the sceneWrap)
- * Change these numbers to move the cluster.
- */
+/** ✅ Wall zone (percent of sceneWrap) */
 const WALL_ZONE = {
   leftMin: 58,
   leftMax: 92,
@@ -26,10 +25,9 @@ const WALL_ZONE = {
   topMax: 52
 };
 
-/**
- * ✅ Layout for many notes (>10)
- * Uses a grid inside WALL_ZONE.
- */
+function lerp(a, b, t) { return a + (b - a) * t; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+
 function computeWallPosition(i, total) {
   const cols = total <= 6 ? 2 : total <= 12 ? 3 : 4;
   const rows = Math.ceil(total / cols);
@@ -41,7 +39,6 @@ function computeWallPosition(i, total) {
   const yGap = (WALL_ZONE.topMax - WALL_ZONE.topMin) / Math.max(rows, 1);
   const y = WALL_ZONE.topMin + row * yGap + yGap * 0.35;
 
-  // Small randomness so it looks natural
   const jitterX = rand(-1.3, 1.3);
   const jitterY = rand(-1.0, 1.0);
   const rot = rand(-10, 10);
@@ -49,10 +46,6 @@ function computeWallPosition(i, total) {
   return { left: x + jitterX, top: y + jitterY, rot };
 }
 
-function lerp(a, b, t) { return a + (b - a) * t; }
-function rand(a, b) { return a + Math.random() * (b - a); }
-
-/** ✅ Paris date as YYYY-MM-DD */
 function getParisISODate() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -67,12 +60,19 @@ function getParisISODate() {
   return `${y}-${m}-${d}`;
 }
 
-/** ✅ Prevent emoji breaking typing */
+function formatDatePretty(iso) {
+  try {
+    const d = new Date(iso + "T00:00:00");
+    return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "2-digit" }).format(d);
+  } catch {
+    return iso;
+  }
+}
+
 function splitGraphemes(str) {
   return Array.from(str);
 }
 
-/** ✅ Slow handwriting typing */
 function typeTextSlow(el, text, msPerChar = 55) {
   return new Promise((resolve) => {
     el.textContent = "";
@@ -82,6 +82,8 @@ function typeTextSlow(el, text, msPerChar = 55) {
     let i = 0;
 
     const tick = () => {
+      if (!modalOpen) return; // ✅ if modal closed during typing, stop cleanly
+
       el.textContent += chars[i] ?? "";
       i += 1;
 
@@ -97,17 +99,16 @@ function typeTextSlow(el, text, msPerChar = 55) {
   });
 }
 
-/** ✅ Preload popup background so it doesn't "appear later" */
+/** ✅ Preload popup background */
 (function preloadAssets() {
   const img = new Image();
   img.src = "backgroundNote.png";
 })();
 
-/** ✅ Build wall icons from old notes */
 function renderWallNotes(todayIso) {
   wallNotesEl.innerHTML = "";
 
-  // Old notes = everything except today's note
+  // ✅ Old notes only = everything except today's note (if it exists)
   const old = NOTES.filter(n => n.date !== todayIso);
 
   old.forEach((note, idx) => {
@@ -122,40 +123,51 @@ function renderWallNotes(todayIso) {
     el.innerHTML = `<div class="icon">🗒️</div>`;
     el.title = note.date;
 
-    el.addEventListener("click", () => {
-      openNote(note, el);
-    });
-
+    el.addEventListener("click", () => openNote(note, el));
     wallNotesEl.appendChild(el);
   });
 }
 
-/** ✅ Modal open with zoom-from-sticky animation */
-async function openNote(note, fromEl = null) {
-  currentNote = note;
-
-  // --- MUSIC: must start immediately inside the click gesture ---
+/** ✅ hard-stop audio */
+function stopAudioHard() {
   try {
-    if (note.music) {
-      audioEl.pause();
-      audioEl.currentTime = 0;
-      audioEl.src = note.music;
-      audioEl.load();
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    audioEl.removeAttribute("src"); // ✅ important: prevents restart / caching weirdness
+    audioEl.load();
+  } catch {}
+}
 
-      // DON'T await here (keep user gesture)
-      audioEl.play().catch(() => {
-        // iOS may block; user can tap the note to start
-        // (we enable that below)
-      });
-    }
-  } catch (e) {
-    console.warn("Audio error:", e);
-  }
+/** ✅ allow tap-to-play only while modal is open */
+function attachTapToPlay() {
+  if (pendingTapToPlay) return;
 
-  // Show modal
+  pendingTapToPlay = () => {
+    if (!modalOpen) return;
+    if (!currentNote?.music) return;
+    if (!audioEl.paused) return;
+
+    audioEl.play().catch(() => {
+      // still blocked, user can tap again
+      pendingTapToPlay = null;
+      attachTapToPlay();
+    });
+  };
+
+  modalCard.addEventListener("click", pendingTapToPlay, { once: true });
+}
+
+async function openNote(note, fromEl = null) {
+  // close any previous state
+  stopAudioHard();
+
+  currentNote = note;
+  modalOpen = true;
+
+  // show modal
   modal.classList.remove("hidden");
 
-  // Zoom animation from clicked sticky note
+  // zoom animation
   if (fromEl) {
     const r = fromEl.getBoundingClientRect();
     const startX = r.left + r.width / 2;
@@ -172,38 +184,48 @@ async function openNote(note, fromEl = null) {
     const dy = startY - endY;
 
     modalCard.style.transform = `translate(${dx}px, ${dy}px) scale(0.15)`;
-    modalCard.offsetHeight; // reflow
+    modalCard.offsetHeight;
 
     modalCard.style.transition = "transform 320ms cubic-bezier(.2,.8,.2,1)";
     modalCard.style.transform = "translate(-50%, -50%) scale(1)";
   }
 
-  // Fill content (typing)
-  noteDateEl.textContent = formatDatePretty(note.date);
-  await typeTextSlow(noteTextEl, note.text, 55);
+  // set date + type text
+  noteDateEl.textContent = note.date ? formatDatePretty(note.date) : "";
+  await typeTextSlow(noteTextEl, note.text || "", 55);
 
-  // If autoplay was blocked, allow tap on the note to start music
-  modalCard.addEventListener("click", tryPlayIfBlocked, { once: true });
+  // ✅ MUSIC: play only if note has music AND modal still open
+  if (modalOpen && note.music) {
+    try {
+      audioEl.autoplay = false;
+      audioEl.loop = false;
+      audioEl.src = note.music;
+      audioEl.load();
+
+      // must be in user gesture context; if blocked, user can tap popup once
+      audioEl.play().catch(() => {
+        pendingTapToPlay = null;
+        attachTapToPlay();
+      });
+    } catch (e) {
+      console.warn("Audio error:", e);
+    }
+  }
 }
 
-function tryPlayIfBlocked() {
-  if (!currentNote?.music) return;
-  if (!audioEl.paused) return;
-
-  audioEl.play().catch(() => {
-    // still blocked; user can tap again
-    modalCard.addEventListener("click", tryPlayIfBlocked, { once: true });
-  });
-}
-
-/** ✅ Close modal */
 function closeModal() {
+  modalOpen = false;
+
   modal.classList.add("hidden");
   noteTextEl.textContent = "";
   noteTextEl.classList.remove("typing");
+  noteDateEl.textContent = "";
 
-  audioEl.pause();
-  audioEl.currentTime = 0;
+  // ✅ stop music and prevent any restart
+  stopAudioHard();
+
+  // ✅ clear pending tap handler
+  pendingTapToPlay = null;
 }
 
 backdrop.addEventListener("click", closeModal);
@@ -212,25 +234,25 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-/** ✅ Click table sticky => open today's note */
+/** ✅ Table click: open today's note OR placeholder if missing */
 tableHotspot.addEventListener("click", () => {
   const today = getParisISODate();
-  const note = NOTES.find(n => n.date === today) || NOTES[NOTES.length - 1];
-  if (!note) return;
-  openNote(note, tableHotspot);
+  const todayNote = NOTES.find(n => n.date === today);
+
+  if (todayNote) {
+    openNote(todayNote, tableHotspot);
+    return;
+  }
+
+  // ✅ placeholder when today's note doesn't exist
+  openNote({
+    date: today,
+    text: "Your love is busy… I’ll write today’s note ASAP 💛",
+    music: "" // no music
+  }, tableHotspot);
 });
 
-/** ✅ Date format */
-function formatDatePretty(iso) {
-  try {
-    const d = new Date(iso + "T00:00:00");
-    return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "2-digit" }).format(d);
-  } catch {
-    return iso;
-  }
-}
-
-/** ✅ Load notes */
+/** ✅ load notes */
 async function loadNotes() {
   try {
     const res = await fetch(`notes.json?v=${Date.now()}`, { cache: "no-store" });
@@ -238,7 +260,6 @@ async function loadNotes() {
 
     if (!Array.isArray(data)) throw new Error("notes.json must be an array");
 
-    // sort by date
     NOTES = data.slice().sort((a, b) => (a.date > b.date ? 1 : -1));
 
     const today = getParisISODate();
